@@ -84,6 +84,9 @@ enum psa_sst_err_t sst_am_create(int32_t client_id,
                                  uint32_t asset_uuid,
                                  const struct tfm_sst_token_t *s_token);
 
+enum psa_sst_err_t sst_jwt_sign(uint32_t app_id, uint32_t asset_uuid,
+                                 const struct tfm_sst_token_t *s_token);
+
 /**
  * \brief Gets the asset's info referenced by asset UUID.
  *
