@@ -35,7 +35,7 @@ enum psa_sst_err_t tfm_sst_veneer_create(int32_t client_id,
 enum psa_sst_err_t tfm_veneer_jwt_sign(uint32_t app_id,
                                         uint32_t asset_uuid,
                                         const struct tfm_sst_token_t *s_token
-//                                        ,struct tfm_sst_jwt_t *data
+                                        ,struct tfm_sst_jwt_t *data
                                         );
 
 /**
