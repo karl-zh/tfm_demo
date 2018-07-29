@@ -31,7 +31,7 @@ set (MBEDTLS_TARGET_NAME "mbedtls_log_lib")
 set(MBEDTLS_C_FLAGS ${MBEDTLS_C_FLAGS_SST_LOG})
 
 ###Get the definition of what files we need to build
-set (ENABLE_AUDIT_LOGGING ON)
+set (ENABLE_AUDIT_LOGGING OFF)
 include(CMakeLists.inc)
 
 ###Configure how we build our target
@@ -61,7 +61,7 @@ include(${TFM_ROOT_DIR}/BuildMbedtls.cmake)
 add_library(tfm_audit STATIC ${ALL_SRC_ASM} ${ALL_SRC_C})
 embedded_set_target_compile_defines(TARGET tfm_audit LANGUAGE C DEFINES __ARM_FEATURE_CMSE=3 __thumb2__ TFM_LVL=${TFM_LVL})
 #Add a dependency on the mbed_tls_lib_install target.
-add_dependencies(tfm_audit ${MBEDTLS_TARGET_NAME}_install)
+#add_dependencies(tfm_audit ${MBEDTLS_TARGET_NAME}_install)
 #Ask the compiler to merge the mbedtls and the audit logging libraries.
 compiler_merge_library(DEST tfm_audit LIBS "${MBEDTLS_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX_C}mbedcrypto${CMAKE_STATIC_LIBRARY_SUFFIX_C}")
 
