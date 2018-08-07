@@ -11,7 +11,7 @@
 Include(Common/CompilerGNUARMCommon)
 Include(Common/Utils)
 
-check_gnuarm_input_vars("6.3")
+check_gnuarm_input_vars("7.3")
 
 if(NOT DEFINED ARM_CPU_ARHITECTURE)
 	set(_NO_ARM_CPU_ARHITECTURE true)
