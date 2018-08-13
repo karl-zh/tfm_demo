@@ -26,6 +26,7 @@
 
 /* Imports USART driver */
 extern ARM_DRIVER_USART TFM_DRIVER_STDIO;
+extern ARM_DRIVER_USART Driver_USART0;
 
 /* Struct FILE is implemented in stdio.h. Used to redirect printf to
  * TFM_DRIVER_STDIO
@@ -74,6 +75,17 @@ void stdio_init(void)
     ASSERT_HIGH(ret);
 
     ret = TFM_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
+    ASSERT_HIGH(ret);
+
+    /* Minos Hack For Zephyr, Initialize both UART drivers
+    TODO: Remove this commit after:
+    * MUSCA_A1_SCC_NS is defined
+    * Zephyr has a working scc driver
+    */
+    ret = Driver_USART0.Initialize(NULL);
+    ASSERT_HIGH(ret);
+
+    ret = Driver_USART0.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
     ASSERT_HIGH(ret);
 }
 
