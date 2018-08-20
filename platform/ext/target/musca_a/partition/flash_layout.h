@@ -45,7 +45,7 @@
  * sw binary. Each FLASH_AREA_IMAGE contains two partitions. See Flash layout
  * above.
  */
-#define FLASH_PARTITION_SIZE            (0x20000) /* 128KB */
+#define FLASH_PARTITION_SIZE            (0x80000) /* 512KB */
 
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
 #define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x1000)     /* 4 kB */
@@ -54,6 +54,7 @@
 
 /* Flash layout info for BL2 bootloader */
 #define FLASH_BASE_ADDRESS              (0x10200000) /* same as FLASH0_BASE_S */
+#define CODE_SRAM_BASE_ADDRESS          (0x00000000) /* Base SRAM Address */
 
 /* Offset and size definitions of the flash partitions that are handled by the
  * bootloader. The image swapping is done between IMAGE_0 and IMAGE_1, SCRATCH
@@ -61,12 +62,11 @@
  */
 #define FLASH_AREA_BL2_OFFSET           (0x0)
 #ifdef BL2
-#define FLASH_AREA_BL2_SIZE             (0x10000) /* 64KB */
+#define FLASH_AREA_BL2_SIZE             (0x40000) /* 256KB */
 #else
 #define FLASH_AREA_BL2_SIZE             (0x0)
 #endif
-#define FLASH_AREA_IMAGE_SIZE           ((2 * FLASH_PARTITION_SIZE) -\
-                                          FLASH_AREA_BL2_SIZE)
+#define FLASH_AREA_IMAGE_SIZE           (2 * FLASH_PARTITION_SIZE)
 
 #define FLASH_AREA_IMAGE_0_OFFSET       (FLASH_AREA_BL2_OFFSET + \
                                          FLASH_AREA_BL2_SIZE)
@@ -92,16 +92,15 @@
  * the actual contents of SST is stored in Code SRAM. See Driver_Flash.c for
  * more details.
  */
-#define FLASH_SST_AREA_OFFSET           (FLASH_AREA_IMAGE_SCRATCH_OFFSET + \
-                                         FLASH_AREA_IMAGE_SCRATCH_SIZE)
+#define FLASH_SST_AREA_OFFSET           (0x1C0000)
 #define FLASH_SST_AREA_SIZE             (0x5000)   /* 20 KB */
 
 /* Offset and size definition in flash area, used by assemble.py */
 #define SECURE_IMAGE_OFFSET             0x0
-#define SECURE_IMAGE_MAX_SIZE           0x20000
+#define SECURE_IMAGE_MAX_SIZE           0x80000   /* 512KB */
 
-#define NON_SECURE_IMAGE_OFFSET         0x20000
-#define NON_SECURE_IMAGE_MAX_SIZE       0x20000
+#define NON_SECURE_IMAGE_OFFSET         0x80000
+#define NON_SECURE_IMAGE_MAX_SIZE       0x80000   /* 512KB */
 
 /* Flash device name used by BL2 and SST
  * Name is defined in flash driver file: Driver_Flash.c

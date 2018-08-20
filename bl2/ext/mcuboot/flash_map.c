@@ -39,7 +39,14 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
  * anything "real".
  */
 #define FLASH_DEVICE_ID 100
-#define FLASH_DEVICE_BASE FLASH_BASE_ADDRESS
+
+/*
+ * HACK
+ * As all the code (secure and non secure) is copied to code sram
+ * FLASH_DEVICE_BASE points to CODE_SRAM_BASE_ADDRESS instead of
+ * FLASH_BASE_ADDRESS
+ */
+#define FLASH_DEVICE_BASE CODE_SRAM_BASE_ADDRESS
 
 #define FLASH_MAP_ENTRY_MAGIC 0xd00dbeef
 

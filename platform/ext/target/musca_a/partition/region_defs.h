@@ -63,9 +63,20 @@
 
 #define CMSE_VENEER_REGION_SIZE     (0x000000C0)
 
-/* Use QSPI Flash memory to store Code data */
-#define S_ROM_ALIAS_BASE  (0x10200000)
-#define NS_ROM_ALIAS_BASE (0x00200000)
+/*
+ * Since we enable/disable flash during s/ns code copy to code sram we cannot
+ * access bl2 code from flash, hence we need to copy the bl2 code to code sram
+ */
+#define BL2_CODE_SRAM_ALIAS_BASE (0x10000000)
+#define BL2_CODE_SRAM_ALIAS(x) (BL2_CODE_SRAM_ALIAS_BASE + x)
+#define BL2_CODE_SRAM_BASE  (BL2_CODE_SRAM_ALIAS(FLASH_AREA_BL2_OFFSET))
+
+#define BL2_ROM_ALIAS_BASE (0x10200000)
+#define BL2_ROM_ALIAS(x) (BL2_ROM_ALIAS_BASE + x)
+
+/* Use SRAM memory to store Code data */
+#define S_ROM_ALIAS_BASE  (0x10000000)
+#define NS_ROM_ALIAS_BASE (0x00000000)
 
 #define S_RAM_ALIAS_BASE  (0x30000000)
 #define NS_RAM_ALIAS_BASE (0x20000000)
@@ -106,7 +117,7 @@
 #define NS_PARTITION_START \
             (NS_ROM_ALIAS(NS_IMAGE_PRIMARY_PARTITION_OFFSET))
 
-#define NS_PARTITION_SIZE (FLASH_PARTITION_SIZE / 2)
+#define NS_PARTITION_SIZE (FLASH_PARTITION_SIZE)
 
 /* Secondary partition for new images in case of firmware upgrade */
 #define SECONDARY_PARTITION_START \
@@ -130,7 +141,7 @@
 
 #ifdef BL2
 /* Bootloader regions */
-#define BL2_CODE_START    (S_ROM_ALIAS(FLASH_AREA_BL2_OFFSET))
+#define BL2_CODE_START    (BL2_ROM_ALIAS(FLASH_AREA_BL2_OFFSET))
 #define BL2_CODE_SIZE     (FLASH_AREA_BL2_SIZE)
 #define BL2_CODE_LIMIT    (BL2_CODE_START + BL2_CODE_SIZE - 1)
 

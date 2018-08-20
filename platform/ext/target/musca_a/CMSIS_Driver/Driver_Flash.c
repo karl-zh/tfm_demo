@@ -203,11 +203,8 @@ static int32_t ARM_Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    /* Redirecting SST storage to code sram */
-    if(addr >= SST_FLASH_AREA_ADDR &&
-       addr <= SST_FLASH_AREA_ADDR + FLASH_SST_AREA_SIZE) {
-        start_addr = S_CODE_SRAM_ALIAS_BASE + addr;
-    }
+    /* Redirecting code sram */
+    start_addr = CODE_SRAM_BASE_ADDRESS + addr;
 
     /* Flash interface just emulated over SRAM, use memcpy */
     memcpy(data, (void *)start_addr, cnt);
@@ -216,8 +213,7 @@ static int32_t ARM_Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
 
 static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data, uint32_t cnt)
 {
-    volatile uint32_t mem_base = FLASH0_DEV->memory_base;
-    uint32_t start_addr = mem_base + addr;
+    uint32_t start_addr = S_CODE_SRAM_ALIAS_BASE + addr;
     int32_t rc = 0;
 
     /* Check flash memory boundaries and alignment with minimal write size */
@@ -228,27 +224,19 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data, uint32_t c
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    /* Redirecting SST storage to code sram */
-    if(addr >= SST_FLASH_AREA_ADDR &&
-       addr <= SST_FLASH_AREA_ADDR + FLASH_SST_AREA_SIZE) {
-        start_addr = S_CODE_SRAM_ALIAS_BASE + addr;
-        /* Flash interface emulated over CODE SRAM. Writing it on 4 aligned
-         * addresses is necessary, so use a special memcpy function.
-         */
-        rc = memcpy4((void *)start_addr, data, cnt);
-        if (rc != ARM_DRIVER_OK) {
-            return ARM_DRIVER_ERROR_PARAMETER;
-        }
-    } else {
-        /* Flash interface just emulated over SRAM, use memcpy */
-        memcpy((void *)start_addr, data, cnt);
+
+    /* Flash interface emulated over CODE SRAM. Writing it on 4 aligned
+     * addresses is necessary, so use a special memcpy function.
+     */
+    rc = memcpy4((void *)start_addr, data, cnt);
+    if (rc != ARM_DRIVER_OK) {
+        return ARM_DRIVER_ERROR_PARAMETER;
     }
     return ARM_DRIVER_OK;
 }
 
 static int32_t ARM_Flash_EraseSector(uint32_t addr)
 {
-    volatile uint32_t mem_base = FLASH0_DEV->memory_base;
     uint32_t rc = 0;
 
     rc  = is_range_valid(FLASH0_DEV, addr);
@@ -257,24 +245,14 @@ static int32_t ARM_Flash_EraseSector(uint32_t addr)
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    /* Redirecting SST storage to code sram */
-    if(addr >= SST_FLASH_AREA_ADDR &&
-       addr <= SST_FLASH_AREA_ADDR + FLASH_SST_AREA_SIZE) {
-        /* Flash interface emulated over CODE SRAM. Writing it on 4 aligned
-         * addresses is necessary, so use a special memset function.
-         */
-        rc = memset4((void *)(S_CODE_SRAM_ALIAS_BASE + addr),
-                   FLASH0_DEV->data->erased_value,
-                   FLASH0_DEV->data->sector_size);
-        if (rc != ARM_DRIVER_OK) {
-            return ARM_DRIVER_ERROR_PARAMETER;
-        }
-
-    } else {
-        /* Flash interface just emulated over SRAM, use memset */
-        memset((void *)mem_base + addr,
+    /* Flash interface emulated over CODE SRAM. Writing it on 4 aligned
+     * addresses is necessary, so use a special memset function.
+     */
+    rc = memset4((void *)(S_CODE_SRAM_ALIAS_BASE + addr),
                FLASH0_DEV->data->erased_value,
                FLASH0_DEV->data->sector_size);
+    if (rc != ARM_DRIVER_OK) {
+        return ARM_DRIVER_ERROR_PARAMETER;
     }
     return ARM_DRIVER_OK;
 }
@@ -282,31 +260,20 @@ static int32_t ARM_Flash_EraseSector(uint32_t addr)
 static int32_t ARM_Flash_EraseChip(void)
 {
     uint32_t i;
-    uint32_t addr = FLASH0_DEV->memory_base;
-    int32_t rc = ARM_DRIVER_ERROR_UNSUPPORTED;
+    /* Redirecting to code sram */
+    uint32_t addr = S_CODE_SRAM_ALIAS_BASE;
+    int32_t rc = ARM_DRIVER_OK;
 
     /* Check driver capability erase_chip bit */
     if (DriverCapabilities.erase_chip == 1) {
         for (i = 0; i < FLASH0_DEV->data->sector_count; i++) {
-            /* Redirecting SST storage to code sram */
-            if(addr >= SST_FLASH_AREA_ADDR &&
-               addr <= SST_FLASH_AREA_ADDR + FLASH_SST_AREA_SIZE) {
-                rc = memset4((void *)addr - FLASH0_DEV->memory_base
-                               + S_CODE_SRAM_ALIAS_BASE,
-                        FLASH0_DEV->data->erased_value,
-                        FLASH0_DEV->data->sector_size);
-                if (rc != ARM_DRIVER_OK) {
-                    return ARM_DRIVER_ERROR_PARAMETER;
-                }
-
-            } else {
-                /* Flash interface just emulated over SRAM, use memset */
-                memset((void *)addr,
-                       FLASH0_DEV->data->erased_value,
-                       FLASH0_DEV->data->sector_size);
+            rc = memset4((void *)addr,
+                    FLASH0_DEV->data->erased_value,
+                    FLASH0_DEV->data->sector_size);
+            if (rc != ARM_DRIVER_OK) {
+                return ARM_DRIVER_ERROR_PARAMETER;
             }
             addr += FLASH0_DEV->data->sector_size;
-            rc = ARM_DRIVER_OK;
         }
     }
     return rc;

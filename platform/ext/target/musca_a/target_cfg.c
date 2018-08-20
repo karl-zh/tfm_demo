@@ -69,6 +69,7 @@ const struct memory_region_limits memory_regions = {
 extern ARM_DRIVER_MPC Driver_CODE_SRAM_MPC, Driver_QSPI_MPC;
 extern ARM_DRIVER_MPC Driver_ISRAM0_MPC, Driver_ISRAM1_MPC;
 extern ARM_DRIVER_MPC Driver_ISRAM2_MPC, Driver_ISRAM3_MPC;
+extern ARM_DRIVER_MPC Driver_CODE_SRAM_MPC;
 
 /* Define Peripherals NS address range for the platform */
 #define PERIPHERALS_BASE_NS_START (0x40000000)
@@ -178,11 +179,14 @@ void mpc_init_cfg(void)
     ARM_DRIVER_MPC* mpc_data_region1 = &Driver_ISRAM1_MPC;
     ARM_DRIVER_MPC* mpc_data_region2 = &Driver_ISRAM2_MPC;
     ARM_DRIVER_MPC* mpc_data_region3 = &Driver_ISRAM3_MPC;
+    ARM_DRIVER_MPC* mpc_code_region = &Driver_CODE_SRAM_MPC;
 
-    Driver_QSPI_MPC.Initialize();
-    Driver_QSPI_MPC.ConfigRegion(memory_regions.non_secure_partition_base,
-                                 memory_regions.non_secure_partition_limit,
-                                 ARM_MPC_ATTR_NONSECURE);
+    /* Code Ram region */
+    mpc_code_region->Initialize();
+    mpc_code_region->ConfigRegion(memory_regions.non_secure_partition_base,
+                                  memory_regions.non_secure_partition_limit,
+                                  ARM_MPC_ATTR_NONSECURE);
+
 #ifdef BL2
     /* Secondary image region */
     Driver_QSPI_MPC.ConfigRegion(memory_regions.secondary_partition_base,
@@ -211,7 +215,7 @@ void mpc_init_cfg(void)
                                    ARM_MPC_ATTR_NONSECURE);
 
     /* Lock down the MPC configuration */
-    Driver_QSPI_MPC.LockDown();
+    mpc_code_region->LockDown();
     mpc_data_region0->LockDown();
     mpc_data_region1->LockDown();
     mpc_data_region2->LockDown();

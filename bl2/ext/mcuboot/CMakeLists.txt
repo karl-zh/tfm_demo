@@ -65,6 +65,7 @@ list(APPEND ALL_SRC_C "${MCUBOOT_DIR}/bl2_main.c"
 		"${MCUBOOT_DIR}/bootutil/src/image_validate.c"
 		"${MCUBOOT_DIR}/bootutil/src/image_rsa.c"
 		"${MCUBOOT_DIR}/bootutil/src/caps.c"
+		"${MCUBOOT_DIR}/mt25ql.c"
 	)
 
 #Define location of mbedtls source, build, and installation directory.

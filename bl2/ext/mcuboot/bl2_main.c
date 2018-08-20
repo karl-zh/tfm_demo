@@ -45,6 +45,8 @@ struct arm_vector_table {
     uint32_t reset;
 };
 
+void Code_Copy_To_SRAM();
+
 static void do_boot(struct boot_rsp *rsp)
 {
     /* Clang at O0, stores variables on the stack with SP relative addressing.
@@ -81,6 +83,8 @@ int main(void)
     int rc;
 
     stdio_init();
+
+    Code_Copy_To_SRAM();
 
     BOOT_LOG_INF("Starting bootloader");
 
