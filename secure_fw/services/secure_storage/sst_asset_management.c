@@ -402,7 +402,7 @@ enum psa_sst_err_t sst_am_create(int32_t client_id, uint32_t asset_uuid,
 
     return err;
 }
-
+#if 0
 static const unsigned char simple_private_der[] = {
 	0x8f, 0xe2, 0x47, 0x03, 0x9b, 0x35, 0xec, 0x6b,
 	0xe0, 0x8c, 0x8b, 0xcb, 0x53, 0xb6, 0x70, 0xf6,
@@ -410,13 +410,28 @@ static const unsigned char simple_private_der[] = {
 	0x29, 0x45, 0xe8, 0x0d, 0x01, 0x61, 0xfb, 0x26,
 };
 unsigned const int simple_private_der_len = 32;
+#else
+static unsigned char karl_zh_ec_private_der[] = {
+
+                0x1f, 0xf7, 0x74, 0x96, 0x1a, 0x30, 0x21, 0x81,
+
+                0x4e, 0x19, 0xf6, 0xf6, 0x3c, 0xb2, 0x44, 0x4c,
+
+                0x32, 0xee, 0xe9, 0x17, 0xb5, 0xe1, 0xd2, 0xcb,
+
+                0xa9, 0xc1, 0xd2, 0x1e, 0x4e, 0x54, 0x53, 0x61,
+
+};
+
+unsigned int karl_zh_ec_private_der_len = 32;
+#endif
 
 enum psa_sst_err_t sst_jwt_get_address(uint32_t app_id, uint32_t asset_uuid,
                                const struct tfm_sst_token_t *s_token,
                                const unsigned char **address)
 {
-	printf("Storing %p in %p\n", simple_private_der, address);
-	*address = simple_private_der;
+	printf("Storing %p in %p\n", karl_zh_ec_private_der, address);
+	*address = karl_zh_ec_private_der;
 	return PSA_SST_ERR_SUCCESS;
 }
 
@@ -429,7 +444,7 @@ enum psa_sst_err_t sst_jwt_sign(uint32_t app_id, uint32_t asset_uuid,
 
 	printf("fun %s() from secure \r\n", __func__);
 	printf("Param Buffer %p, Size %x\r\n", data->buffer, data->buffer_size);
-	printf("Load key from: %p\r\n", simple_private_der);
+	printf("Load key from: %p\r\n", karl_zh_ec_private_der);
 
 	int res = jwt_init_builder(&build, data->buffer, data->buffer_size);
 	printf("builder: %d\r\n", res);
@@ -441,7 +456,8 @@ enum psa_sst_err_t sst_jwt_sign(uint32_t app_id, uint32_t asset_uuid,
 	printf("payload: %d\r\n", res);
 
 	if(res == 0) {
-		res = jwt_sign(&build, (const char *)simple_private_der, simple_private_der_len);
+		res = jwt_sign(&build, (const char *)karl_zh_ec_private_der,
+                                             karl_zh_ec_private_der_len);
 	} else {
 		err = PSA_SST_ERR_PARAM_ERROR;
 	}
@@ -451,7 +467,7 @@ enum psa_sst_err_t sst_jwt_sign(uint32_t app_id, uint32_t asset_uuid,
 		err = PSA_SST_ERR_SYSTEM_ERROR;
 	}
 
-	printf("Done signing, err: %d\r\n", err);
+	printf("Done signing, err: %d, plen=%d\r\n", err, jwt_payload_len(&build));
 
 	return err;
 }
