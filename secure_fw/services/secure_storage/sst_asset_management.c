@@ -412,7 +412,7 @@ static const unsigned char simple_private_der[] = {
 unsigned const int simple_private_der_len = 32;
 #else
 static unsigned char karl_zh_ec_private_der[] = {
-#if 0 // karl_zh
+#if 1 // karl_zh
                 0x1f, 0xf7, 0x74, 0x96, 0x1a, 0x30, 0x21, 0x81,
 
                 0x4e, 0x19, 0xf6, 0xf6, 0x3c, 0xb2, 0x44, 0x4c,
