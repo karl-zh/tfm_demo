@@ -20,6 +20,7 @@ extern "C" {
  */
 #include "tfm_sst_svc_handler.h"
 #include "tfm_log_svc_handler.h"
+#include "tfm_led_svc_handler.h"
 #include "svc_core_test_ns.h"
 #include "sst_test_service_svc.h"
 
@@ -50,7 +51,8 @@ extern "C" {
     X(SVC_TFM_SST_DELETE, tfm_sst_svc_delete) \
     X(SVC_TFM_LOG_RETRIEVE, tfm_log_svc_retrieve) \
     X(SVC_TFM_LOG_GET_INFO, tfm_log_svc_get_info) \
-    X(SVC_TFM_LOG_DELETE_ITEMS, tfm_log_svc_delete_items)
+    X(SVC_TFM_LOG_DELETE_ITEMS, tfm_log_svc_delete_items) \
+    X(SVC_TFM_LED_TOGGLE, tfm_led_svc_toggle)
 
 /**
  * \def LIST_SVC_CORE_TEST_INTERACTIVE

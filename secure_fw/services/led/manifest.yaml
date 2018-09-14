@@ -1,0 +1,37 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2018, Arm Limited. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+{
+  "name": "LED",
+  "type": "TRUSTED",
+  "tfm_partition_name": "TFM_SP_LED",
+  "tfm_trusted": true,
+  "priority": "NORMAL",
+  "id": "0x00000102",
+  "entry_point": "main",
+  "stack_size": "0x100",
+  "heap_size": "0x0100",
+  "tfm_init_symbol": "led_core_init",
+  "secure_functions": [
+    {
+      "sfid": "TFM_LED_TOGGLE_SFID",
+      "signal": "TFM_LOG_RETRIEVE",
+      "tfm_symbol": "led_toggle",
+      "non_secure_clients": true,
+      "minor_version": 1,
+      "minor_policy": "strict"
+    }
+  ],
+  "source_files": [
+    "led_core.c"
+  ],
+  "tfm_linker_pattern": {
+    "library_list": [
+      "*tfm_led*"
+    ]
+  }
+}

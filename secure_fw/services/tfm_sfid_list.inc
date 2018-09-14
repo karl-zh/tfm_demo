@@ -28,6 +28,9 @@
     {log_core_get_info, TFM_LOG_GET_INFO_SFID},
     {log_core_delete_items, TFM_LOG_DELETE_ITEMS_SFID},
 
+    /******** TFM_SP_LED_LOG ********/
+    {led_toggle, TFM_LED_TOGGLE_SFID},
+
 #ifdef TFM_PARTITION_TEST_CORE
     /******** TFM_SP_CORE_TEST ********/
     {spm_core_test_sfn, TFM_CORE_TEST_SFN_SFID},
