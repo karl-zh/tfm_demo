@@ -20,4 +20,8 @@ void tfm_panic(void);
                 }                                                   \
             } while (0)
 
+/* Get the container function address from a member */
+#define TFM_TO_CONTAINER(ptr, type, member) \
+    (type *)((unsigned long)(ptr) - (unsigned long)&((type *)0)->member)
+
 #endif
