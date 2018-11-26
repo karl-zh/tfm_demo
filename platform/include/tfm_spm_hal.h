@@ -9,6 +9,7 @@
 #define __TFM_SPM_HAL_H__
 
 #include <stdint.h>
+#include "tfm_plat_defs.h"
 #include "tfm_secure_api.h"
 #include "spm_api.h"
 
@@ -174,5 +175,14 @@ enum spm_err_t tfm_spm_hal_partition_sandbox_deconfig(
 enum spm_err_t tfm_spm_hal_set_share_region(
                                           enum tfm_buffer_share_region_e share);
 #endif
+
+/**
+ * \brief Trigger a new MHU message to CPU.
+ *
+ * \param[in] cpu_id      CPU Id to trigger \ref tfm_cpu_id_t
+ *
+ * \return Returns the result operation as per \ref spm_err_t
+ */
+enum spm_err_t tfm_plat_spm_new_msg(enum tfm_cpu_id_t cpu_id);
 
 #endif /* __TFM_SPM_HAL_H__ */
