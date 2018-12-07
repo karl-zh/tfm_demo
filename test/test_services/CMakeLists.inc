@@ -49,7 +49,11 @@ elseif (TFM_PARTITION_TEST_SST)
 		"${CORE_TEST_DIR}/tfm_sst_test_service/sst_test_service_veneers.c"
 		)
 
-	list(APPEND ALL_SRC_C_NS "${CORE_TEST_DIR}/tfm_sst_test_service/sst_test_service_api.c")
+	if (TFM_PSA_API)
+		list(APPEND ALL_SRC_C_NS "${CORE_TEST_DIR}/tfm_sst_test_service/sst_test_service_api_ipc.c")
+	else()
+		list(APPEND ALL_SRC_C_NS "${CORE_TEST_DIR}/tfm_sst_test_service/sst_test_service_api.c")
+	endif()
 endif()
 
 if (NOT DEFINED TFM_PARTITION_TEST_SECURE_SERVICES)

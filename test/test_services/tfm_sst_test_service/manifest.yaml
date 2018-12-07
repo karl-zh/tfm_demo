@@ -13,6 +13,7 @@
   "entry_point": "sst_test_service_init",
   "stack_size": "0x0400",
   "heap_size": "0x0400",
+  "tfm_partition_ipc": true,
   "secure_functions": [
     {
       "sfid": "TFM_SST_TEST_SFN_SETUP_SFID",
@@ -54,5 +55,38 @@
     "object_list": [
       "*sst_test_service.*"
     ]
-  }
+  },
+  "services": [{
+    "name": "SST_TEST_SERVICE_SFN_SETUP_SID",
+    "sid": "0x00003000",
+    "signal": "PSA_SST_TEST_SERVICE_SETUP",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_TEST_SERVICE_SFN_DUMMY_ENCRYPT_SID",
+    "sid": "0x00003001",
+    "signal": "PSA_SST_TEST_SERVICE_DUMMY_ENCRYPT",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_TEST_SERVICE_SFN_DUMMY_DECRYPT_SID",
+    "sid": "0x00003002",
+    "signal": "PSA_SST_TEST_SERVICE_DUMMY_DECRYPT",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_TEST_SERVICE_SFN_CLEAN_SID",
+    "sid": "0x00003003",
+    "signal": "PSA_SST_TEST_SERVICE_CLEAN",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    }
+  ]
 }
