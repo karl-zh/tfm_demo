@@ -59,6 +59,12 @@ endif()
 add_library(tfm_audit STATIC ${ALL_SRC_ASM} ${ALL_SRC_C})
 embedded_set_target_compile_defines(TARGET tfm_audit LANGUAGE C DEFINES __ARM_FEATURE_CMSE=3 __thumb2__ TFM_LVL=${TFM_LVL})
 
+if (TFM_MODULAR)
+	target_compile_definitions(tfm_audit PRIVATE TFM_MODULAR=1)
+else()
+	target_compile_definitions(tfm_audit PRIVATE TFM_MODULAR=0)
+endif()
+
 if (AUDIT_LOG_BUILD_MBEDTLS)
 	#Add a dependency on the mbed_tls_lib_install target.
 	add_dependencies(tfm_audit ${MBEDTLS_TARGET_NAME}_install)
