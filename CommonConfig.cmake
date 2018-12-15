@@ -107,6 +107,11 @@ set (TFM_PSA_API OFF)
 set (TFM_LEGACY_API ON)
 set (CORE_TEST_IPC OFF)
 
+#Option to export secure services as module
+if(NOT DEFINED TFM_MODULAR)
+	set (TFM_MODULAR OFF)
+endif()
+
 if(${TARGET_PLATFORM} STREQUAL "AN521" OR ${TARGET_PLATFORM} STREQUAL "AN519")
 	set (REFERENCE_PLATFORM ON)
 endif()
