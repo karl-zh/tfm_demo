@@ -52,6 +52,13 @@ struct sst_asset_policy_t {
 enum psa_sst_err_t sst_am_prepare(void);
 
 /**
+ * \brief Initializes the secure storage system as a thread
+ *
+ * \return Returns error code as specified in \ref psa_sst_err_t
+ */
+enum psa_sst_err_t sst_am_init(void);
+
+/**
  * \brief Allocates space for the asset, referenced by asset UUID,
  *        without setting any data in the asset.
  *

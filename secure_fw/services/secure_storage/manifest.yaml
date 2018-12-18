@@ -10,9 +10,10 @@
   "type": "PSA-ROT",
   "priority": "NORMAL",
   "id": "0x00000100",
-  "entry_point": "sst_am_prepare",
+  "entry_point": "sst_am_init",
   "stack_size": "0x2000",
   "heap_size": "0x0400",
+  "tfm_partition_ipc": true,
   "secure_functions": [
     {
       "sfid": "SST_AM_CREATE_SFID",
@@ -88,5 +89,62 @@
     "library_list": [
       "*tfm_storage*"
     ]
-  }
+  },
+  "services": [{
+    "name": "SST_AM_CREATE_SID",
+    "sid": "0x00002000",
+    "signal": "PSA_SST_CREATE",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_AM_GET_INFO_SID",
+    "sid": "0x00002001",
+    "signal": "PSA_SST_GET_INFO",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_AM_GET_ATTRIBUTES",
+    "sid": "0x00002002",
+    "signal": "PSA_SST_GET_ATTRIBUTES",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_AM_SET_ATTRIBUTES",
+    "sid": "0x00002003",
+    "signal": "PSA_SST_SET_ATTRIBUTES",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_AM_READ_SID",
+    "sid": "0x00002004",
+    "signal": "PSA_SST_READ",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_AM_WRITE_SID",
+    "sid": "0x00002005",
+    "signal": "PSA_SST_WRITE",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    },
+    {
+    "name": "SST_AM_DELETE_SID",
+    "sid": "0x00002006",
+    "signal": "PSA_SST_DELETE",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+    }
+  ]
 }

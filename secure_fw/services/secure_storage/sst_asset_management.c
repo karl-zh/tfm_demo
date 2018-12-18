@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2017-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,12 +8,22 @@
 #include "sst_asset_management.h"
 
 #include <stddef.h>
+#include <stdio.h>
 
 #include "assets/sst_asset_defs.h"
 #include "sst_object_system.h"
 #include "sst_utils.h"
 #include "tfm_secure_api.h"
 #include "tfm_sst_defs.h"
+#ifdef TFM_PSA_API
+#include "psa_service.h"
+#include "tfm_sst_signal.h"
+#endif
+
+#ifdef TFM_PSA_API
+#define SST_MAX_BUF_SIZE 16
+typedef psa_status_t (*sst_func_t)(psa_msg_t *msg);
+#endif
 
 /******************************/
 /* Asset management functions */
@@ -80,7 +90,7 @@ static struct sst_asset_policy_t *sst_am_lookup_db_entry(uint32_t uuid)
 static uint16_t sst_am_check_s_ns_policy(int32_t client_id,
                                          uint16_t request_type)
 {
-    enum psa_sst_err_t err;
+    enum psa_sst_err_t err = PSA_SST_ERR_SUCCESS;
     uint16_t access;
 
     /* FIXME: based on level 1 tfm isolation, any entity on the secure side
@@ -99,7 +109,18 @@ static uint16_t sst_am_check_s_ns_policy(int32_t client_id,
      * For now it is for the other secure service to create/delete/write
      * resources with the secure client ID.
      */
+#ifdef TFM_PSA_API
+    /*
+     * If the caller from secure, the err is still set to default
+     * PSA_SST_ERR_SUCCESS, otherwise, set to an error value. Using
+     * PSA_SST_ERR_PARAM_ERROR here to stand for a generic error value.
+     */
+    if (TFM_CLIENT_ID_IS_S(client_id) == 0) {
+        err = PSA_SST_ERR_PARAM_ERROR;
+    }
+#else
     err = sst_utils_validate_secure_caller();
+#endif
 
     if (err == PSA_SST_ERR_SUCCESS) {
         if (TFM_CLIENT_ID_IS_S(client_id) == 0) {
@@ -200,6 +221,508 @@ static enum psa_sst_err_t validate_policy_db(void)
     return PSA_SST_ERR_SUCCESS;
 }
 
+/* Common interfaces for both modes */
+static enum psa_sst_err_t _sst_am_create(int32_t client_id,
+                                         uint32_t asset_uuid,
+                                         const struct tfm_sst_token_t *s_token)
+{
+    enum psa_sst_err_t err;
+    struct sst_asset_policy_t *db_entry;
+
+    db_entry = sst_am_get_db_entry(client_id, asset_uuid, SST_PERM_WRITE);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    err = sst_object_create(asset_uuid, s_token, db_entry->type,
+                            db_entry->max_size);
+
+    return err;
+}
+
+static enum psa_sst_err_t
+    _sst_am_get_info(int32_t client_id, uint32_t asset_uuid,
+                     const struct tfm_sst_token_t *s_token,
+                     struct psa_sst_asset_info_t *info)
+{
+    struct sst_asset_policy_t *db_entry;
+    struct psa_sst_asset_info_t tmp_info;
+    enum psa_sst_err_t err;
+    uint8_t all_perms = SST_PERM_REFERENCE | SST_PERM_READ | SST_PERM_WRITE;
+
+    db_entry = sst_am_get_db_entry(client_id, asset_uuid, all_perms);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    err = sst_object_get_info(asset_uuid, s_token, &tmp_info);
+    if (err == PSA_SST_ERR_SUCCESS) {
+        /* Use tmp_info to not leak information in case the previous function
+         * returns and error. It avoids to leak information in case of error.
+         * So, copy the tmp_info content into the attrs only if that tmp_info
+         * data is valid.
+         */
+        sst_utils_memcpy(info, &tmp_info, PSA_SST_ASSET_INFO_SIZE);
+    }
+
+    return err;
+}
+
+static enum psa_sst_err_t
+    _sst_am_get_attributes(int32_t client_id, uint32_t asset_uuid,
+                           const struct tfm_sst_token_t *s_token,
+                           struct psa_sst_asset_attrs_t *attrs)
+{
+    uint8_t all_perms = SST_PERM_REFERENCE | SST_PERM_READ | SST_PERM_WRITE;
+    struct sst_asset_policy_t *db_entry;
+    enum psa_sst_err_t err;
+    struct psa_sst_asset_attrs_t tmp_attrs;
+
+    db_entry = sst_am_get_db_entry(client_id, asset_uuid, all_perms);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    err = sst_object_get_attributes(asset_uuid, s_token, &tmp_attrs);
+    if (err == PSA_SST_ERR_SUCCESS) {
+        /* Use tmp_attrs to not leak information incase the previous function
+         * returns and error. It avoids to leak information in case of error.
+         * So, copy the tmp_attrs content into the attrs only if that tmp_attrs
+         * data is valid.
+         */
+        sst_utils_memcpy(attrs, &tmp_attrs, PSA_SST_ASSET_ATTR_SIZE);
+    }
+
+    return err;
+}
+
+static enum psa_sst_err_t
+    _sst_am_set_attributes(int32_t client_id, uint32_t asset_uuid,
+                           const struct tfm_sst_token_t *s_token,
+                           const struct psa_sst_asset_attrs_t *attrs)
+{
+    uint8_t all_perms = SST_PERM_REFERENCE | SST_PERM_READ | SST_PERM_WRITE;
+    struct sst_asset_policy_t *db_entry;
+    enum psa_sst_err_t err;
+
+    db_entry = sst_am_get_db_entry(client_id, asset_uuid, all_perms);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    /* FIXME: Validity attributes are not supported in the current service
+     *        implementation. It is mandatory to set start and end subattributes
+     *        to 0.
+     */
+    if (attrs->validity.start != 0 || attrs->validity.end != 0) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+
+    /* FIXME: Check which bit attributes have been changed and check if those
+     *        can be modified or not.
+     */
+    err = sst_object_set_attributes(asset_uuid, s_token, attrs);
+
+    return err;
+}
+
+static enum psa_sst_err_t _sst_am_read(int32_t caller_id, int32_t client_id,
+                                       uint32_t asset_uuid,
+                                       const struct tfm_sst_token_t *s_token,
+                                       struct tfm_sst_buf_t *data)
+{
+    struct sst_asset_policy_t *db_entry;
+    enum psa_sst_err_t err;
+
+    /* Check if it is a read by reference request */
+    if (client_id != SST_DIRECT_CLIENT_READ) {
+        /* Only secure partitions can request it */
+#ifdef TFM_PSA_API
+        if (TFM_CLIENT_ID_IS_S(caller_id) == 1) {
+#else
+        if (sst_utils_validate_secure_caller() == PSA_SST_ERR_SUCCESS) {
+#endif
+            /* Reference read access requested, check if the client has
+             * reference permission, otherwise reject the request.
+             */
+            db_entry = sst_am_get_db_entry(client_id, asset_uuid,
+                                           SST_PERM_REFERENCE);
+            if (db_entry == NULL) {
+                return PSA_SST_ERR_ASSET_NOT_FOUND;
+            }
+        } else {
+            /* A non-secure caller is not allowed to specify any client ID to
+             * request a read by reference.
+             */
+            return PSA_SST_ERR_ASSET_NOT_FOUND;
+        }
+    }
+
+    /* Check client ID permissions */
+    db_entry = sst_am_get_db_entry(caller_id, asset_uuid, SST_PERM_READ);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+#ifndef SST_ENABLE_PARTIAL_ASSET_RW
+    if (data->offset != 0) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+#endif
+
+    err = sst_object_read(asset_uuid, s_token, data->data,
+                          data->offset, data->size);
+
+    return err;
+}
+
+static enum psa_sst_err_t _sst_am_write(int32_t client_id, uint32_t asset_uuid,
+                                        const struct tfm_sst_token_t *s_token,
+                                        const struct tfm_sst_buf_t *data)
+{
+    enum psa_sst_err_t err;
+    struct sst_asset_policy_t *db_entry;
+
+    /* Check data pointer */
+    if (data->data == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    /* Check client ID permissions */
+    db_entry = sst_am_get_db_entry(client_id, asset_uuid, SST_PERM_WRITE);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    /* Boundary check the incoming request */
+    err = sst_utils_check_contained_in(0, db_entry->max_size,
+                                       data->offset, data->size);
+    if (err != PSA_SST_ERR_SUCCESS) {
+        return err;
+    }
+
+#ifndef SST_ENABLE_PARTIAL_ASSET_RW
+    if (data->offset != 0) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+#endif
+
+    err = sst_object_write(asset_uuid, s_token, data->data,
+                           data->offset, data->size);
+
+    return err;
+}
+
+static enum psa_sst_err_t _sst_am_delete(int32_t client_id, uint32_t asset_uuid,
+                                         const struct tfm_sst_token_t *s_token)
+{
+    enum psa_sst_err_t err;
+    struct sst_asset_policy_t *db_entry;
+
+    db_entry = sst_am_get_db_entry(client_id, asset_uuid, SST_PERM_WRITE);
+    if (db_entry == NULL) {
+        return PSA_SST_ERR_ASSET_NOT_FOUND;
+    }
+
+    err = sst_object_delete(asset_uuid, s_token);
+
+    return err;
+}
+
+#ifdef TFM_PSA_API
+/**
+ * SST IPC wrap functions mainly focus on getting caller input parameters
+ * through ipc psa_read, and calling the corresponding service.
+ */
+static psa_status_t sst_am_create_ipc_wrap(psa_msg_t *msg)
+{
+    int32_t client_id;
+    uint32_t asset_uuid;
+    struct tfm_sst_token_t s_token;
+    size_t num = 0, in_size[2];
+
+    client_id = msg->client_id;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    if (in_size[0] != sizeof(uint32_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 0, &asset_uuid, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    return _sst_am_create(client_id, asset_uuid, &s_token);
+}
+
+static psa_status_t sst_am_get_info_ipc_wrap(psa_msg_t *msg)
+{
+    int32_t client_id;
+    uint32_t asset_uuid;
+    struct tfm_sst_token_t s_token;
+    struct psa_sst_asset_info_t info;
+    psa_status_t status;
+    size_t num = 0, in_size[2], out_size[1];
+
+    client_id = msg->client_id;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    out_size[0] = msg->out_size[0];
+    if (in_size[0] != sizeof(uint32_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t) ||
+        out_size[0] != (sizeof(struct psa_sst_asset_info_t))) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 0, &asset_uuid, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    status = _sst_am_get_info(client_id, asset_uuid, &s_token, &info);
+    if (!status) {
+        psa_write(msg->handle, 0, &info, sizeof(struct psa_sst_asset_info_t));
+    }
+    return status;
+}
+
+static psa_status_t sst_am_get_attributes_ipc_wrap(psa_msg_t *msg)
+{
+    int32_t client_id;
+    uint32_t asset_uuid;
+    struct tfm_sst_token_t s_token;
+    struct psa_sst_asset_attrs_t attrs;
+    psa_status_t status;
+    size_t num = 0, in_size[2], out_size[1];
+
+    client_id = msg->client_id;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    out_size[0] = msg->out_size[0];
+    if (in_size[0] != sizeof(uint32_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t) ||
+        out_size[0] != sizeof(struct psa_sst_asset_attrs_t)) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 0, &asset_uuid, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    status = _sst_am_get_attributes(client_id, asset_uuid, &s_token, &attrs);
+    if (!status) {
+        psa_write(msg->handle, 0, &attrs, sizeof(struct psa_sst_asset_attrs_t));
+    }
+    return status;
+}
+
+static psa_status_t sst_am_set_attributes_ipc_wrap(psa_msg_t *msg)
+{
+    int32_t client_id;
+    uint32_t asset_uuid;
+    struct tfm_sst_token_t s_token;
+    struct psa_sst_asset_attrs_t attrs;
+    size_t num = 0, in_size[3];
+
+    client_id = msg->client_id;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    in_size[2] = msg->in_size[2];
+    if (in_size[0] != sizeof(uint32_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t) ||
+        in_size[2] != sizeof(struct psa_sst_asset_attrs_t)) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 0, &asset_uuid, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 2, &attrs,
+                   sizeof(struct psa_sst_asset_attrs_t));
+    if (num != sizeof(struct psa_sst_asset_attrs_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    return _sst_am_set_attributes(client_id, asset_uuid, &s_token, &attrs);
+}
+
+static psa_status_t sst_am_read_ipc_wrap(psa_msg_t *msg)
+{
+    int32_t caller_id;
+    uint32_t offset, size;
+    uint8_t data[SST_MAX_BUF_SIZE];
+    struct tfm_sst_token_t s_token;
+    struct tfm_sst_buf_t s_data = {0};
+    struct tfm_sst_id_t s_id = {0};
+    psa_status_t status;
+    size_t num = 0, in_size[3];
+
+    caller_id = msg->client_id;
+    size = msg->out_size[0];
+    s_data.data = data;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    in_size[2] = msg->in_size[2];
+    if (in_size[0] != sizeof(struct tfm_sst_id_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t) ||
+        in_size[2] != sizeof(uint32_t)) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 0, &s_id, sizeof(struct tfm_sst_id_t));
+    if (num != sizeof(struct tfm_sst_id_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 2, &offset, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    s_data.offset = offset;
+
+    /**
+     * Some test cases pass invalid thread name, need to call sst read
+     * service first to return the corresponding error code regardless
+     * of the size.
+     */
+    do {
+        s_data.size = size;
+        if (size > SST_MAX_BUF_SIZE) {
+            s_data.size = SST_MAX_BUF_SIZE;
+        }
+        status = _sst_am_read(caller_id, s_id.client_id, s_id.asset_uuid,
+                              &s_token, &s_data);
+        if (!status) {
+            psa_write(msg->handle, 0, s_data.data, s_data.size);
+        }
+        s_data.offset += s_data.size;
+        size -= s_data.size;
+    } while (size);
+    return status;
+}
+
+static psa_status_t sst_am_write_ipc_wrap(psa_msg_t *msg)
+{
+    uint8_t buffer[SST_MAX_BUF_SIZE];
+    int32_t client_id;
+    uint32_t asset_uuid, offset, size;
+    struct tfm_sst_token_t s_token;
+    struct tfm_sst_buf_t data;
+    psa_status_t status;
+    size_t num = 0, in_size[3];
+
+    client_id = msg->client_id;
+    size = msg->in_size[3];
+    data.data = buffer;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    in_size[2] = msg->in_size[2];
+    if (in_size[0] != sizeof(uint32_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t) ||
+        in_size[2] != sizeof(uint32_t)) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+    num = psa_read(msg->handle, 0, &asset_uuid, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 2, &offset, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    data.offset = offset;
+
+    /**
+     * Some test cases pass invalid thread name, need to call sst write
+     * service first to return the corresponding error code regardless
+     * of the size.
+     */
+    do {
+        data.size = size;
+        if (size > SST_MAX_BUF_SIZE) {
+            data.size = SST_MAX_BUF_SIZE;
+        }
+        num = psa_read(msg->handle, 3, data.data, data.size);
+        if (num != data.size) {
+            return PSA_SST_ERR_SYSTEM_ERROR;
+        }
+        status = _sst_am_write(client_id, asset_uuid, &s_token, &data);
+        if (status != PSA_SST_ERR_SUCCESS) {
+            return status;
+        }
+
+        size -= num;
+        data.offset += num;
+    } while (size);
+    return status;
+}
+
+static psa_status_t sst_am_delete_ipc_wrap(psa_msg_t *msg)
+{
+    int32_t client_id;
+    uint32_t asset_uuid;
+    struct tfm_sst_token_t s_token;
+    size_t num = 0, in_size[2];
+
+    client_id = msg->client_id;
+    in_size[0] = msg->in_size[0];
+    in_size[1] = msg->in_size[1];
+    if (in_size[0] != sizeof(uint32_t) ||
+        in_size[1] != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_PARAM_ERROR;
+    }
+    num = psa_read(msg->handle, 0, &asset_uuid, sizeof(uint32_t));
+    if (num != sizeof(uint32_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    num = psa_read(msg->handle, 1, &s_token, sizeof(struct tfm_sst_token_t));
+    if (num != sizeof(struct tfm_sst_token_t)) {
+        return PSA_SST_ERR_SYSTEM_ERROR;
+    }
+
+    return _sst_am_delete(client_id, asset_uuid, &s_token);
+}
+#endif
+
 enum psa_sst_err_t sst_am_prepare(void)
 {
     enum psa_sst_err_t err;
@@ -246,6 +769,70 @@ enum psa_sst_err_t sst_am_prepare(void)
     return err;
 }
 
+#ifdef TFM_PSA_API
+static void sst_signal_handle(psa_signal_t signal, sst_func_t pfn)
+{
+    psa_msg_t msg;
+    psa_status_t status;
+
+    status = psa_get(signal, &msg);
+    if (status) {
+        printf("Failed to get message!\r\n");
+        return;
+    }
+
+    switch (msg.type) {
+    case PSA_IPC_CONNECT:
+        psa_reply(msg.handle, PSA_SUCCESS);
+        break;
+    case PSA_IPC_CALL:
+        status = pfn(&msg);
+        psa_reply(msg.handle, status);
+        break;
+    case PSA_IPC_DISCONNECT:
+        psa_reply(msg.handle, PSA_SUCCESS);
+        break;
+    default:
+        break;
+    }
+}
+#endif
+
+enum psa_sst_err_t sst_am_init(void)
+{
+    enum psa_sst_err_t err;
+#ifdef TFM_PSA_API
+    psa_signal_t signals = 0;
+#endif
+
+    err = sst_am_prepare();
+#ifdef TFM_PSA_API
+    while (1) {
+        signals = psa_wait(PSA_WAIT_ANY, PSA_BLOCK);
+        if (signals & PSA_SST_CREATE) {
+            sst_signal_handle(PSA_SST_CREATE, sst_am_create_ipc_wrap);
+        } else if (signals & PSA_SST_GET_INFO) {
+            sst_signal_handle(PSA_SST_GET_INFO, sst_am_get_info_ipc_wrap);
+        } else if (signals & PSA_SST_GET_ATTRIBUTES) {
+            sst_signal_handle(PSA_SST_GET_ATTRIBUTES,
+                              sst_am_get_attributes_ipc_wrap);
+        } else if (signals & PSA_SST_SET_ATTRIBUTES) {
+            sst_signal_handle(PSA_SST_SET_ATTRIBUTES,
+                              sst_am_set_attributes_ipc_wrap);
+        } else if (signals & PSA_SST_READ) {
+            sst_signal_handle(PSA_SST_READ, sst_am_read_ipc_wrap);
+        } else if (signals & PSA_SST_WRITE) {
+            sst_signal_handle(PSA_SST_WRITE, sst_am_write_ipc_wrap);
+        } else if (signals & PSA_SST_DELETE) {
+            sst_signal_handle(PSA_SST_DELETE, sst_am_delete_ipc_wrap);
+        } else {
+            printf("signal is invalid!\r\n");
+        }
+    }
+#endif
+    return err;
+}
+
 /**
  * \brief Validate incoming iovec structure
  *
@@ -287,10 +874,6 @@ enum psa_sst_err_t sst_am_get_info(uint32_t asset_uuid,
                                    struct psa_sst_asset_info_t *info)
 {
     enum psa_sst_err_t bound_check;
-    struct sst_asset_policy_t *db_entry;
-    struct psa_sst_asset_info_t tmp_info;
-    enum psa_sst_err_t err;
-    uint8_t all_perms = SST_PERM_REFERENCE | SST_PERM_READ | SST_PERM_WRITE;
     int32_t client_id;
 
     if (tfm_core_get_caller_client_id(&client_id) != TFM_SUCCESS) {
@@ -304,33 +887,14 @@ enum psa_sst_err_t sst_am_get_info(uint32_t asset_uuid,
         return PSA_SST_ERR_PARAM_ERROR;
     }
 
-    db_entry = sst_am_get_db_entry(client_id, asset_uuid, all_perms);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
-    }
-
-    err = sst_object_get_info(asset_uuid, s_token, &tmp_info);
-    if (err == PSA_SST_ERR_SUCCESS) {
-        /* Use tmp_info to not leak information in case the previous function
-         * returns and error. It avoids to leak information in case of error.
-         * So, copy the tmp_info content into the attrs only if that tmp_info
-         * data is valid.
-         */
-        sst_utils_memcpy(info, &tmp_info, PSA_SST_ASSET_INFO_SIZE);
-    }
-
-    return err;
+    return _sst_am_get_info(client_id, asset_uuid, s_token, info);
 }
 
 enum psa_sst_err_t sst_am_get_attributes(uint32_t asset_uuid,
                                          const struct tfm_sst_token_t *s_token,
                                          struct psa_sst_asset_attrs_t *attrs)
 {
-    uint8_t all_perms = SST_PERM_REFERENCE | SST_PERM_READ | SST_PERM_WRITE;
     enum psa_sst_err_t bound_check;
-    struct sst_asset_policy_t *db_entry;
-    enum psa_sst_err_t err;
-    struct psa_sst_asset_attrs_t tmp_attrs;
     int32_t client_id;
 
     if (tfm_core_get_caller_client_id(&client_id) != TFM_SUCCESS) {
@@ -343,33 +907,14 @@ enum psa_sst_err_t sst_am_get_attributes(uint32_t asset_uuid,
     if (bound_check != PSA_SST_ERR_SUCCESS) {
         return PSA_SST_ERR_PARAM_ERROR;
     }
-
-    db_entry = sst_am_get_db_entry(client_id, asset_uuid, all_perms);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
-    }
-
-    err = sst_object_get_attributes(asset_uuid, s_token, &tmp_attrs);
-    if (err == PSA_SST_ERR_SUCCESS) {
-        /* Use tmp_attrs to not leak information incase the previous function
-         * returns and error. It avoids to leak information in case of error.
-         * So, copy the tmp_attrs content into the attrs only if that tmp_attrs
-         * data is valid.
-         */
-        sst_utils_memcpy(attrs, &tmp_attrs, PSA_SST_ASSET_ATTR_SIZE);
-    }
-
-    return err;
+    return _sst_am_get_attributes(client_id, asset_uuid, s_token, attrs);
 }
 
 enum psa_sst_err_t sst_am_set_attributes(uint32_t asset_uuid,
                                       const struct tfm_sst_token_t *s_token,
                                       const struct psa_sst_asset_attrs_t *attrs)
 {
-    uint8_t all_perms = SST_PERM_REFERENCE | SST_PERM_READ | SST_PERM_WRITE;
     enum psa_sst_err_t bound_check;
-    struct sst_asset_policy_t *db_entry;
-    enum psa_sst_err_t err;
     int32_t client_id;
 
     if (tfm_core_get_caller_client_id(&client_id) != TFM_SUCCESS) {
@@ -384,47 +929,19 @@ enum psa_sst_err_t sst_am_set_attributes(uint32_t asset_uuid,
         return PSA_SST_ERR_PARAM_ERROR;
     }
 
-    db_entry = sst_am_get_db_entry(client_id, asset_uuid, all_perms);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
-    }
-
-    /* FIXME: Validity attributes are not supported in the current service
-     *        implementation. It is mandatory to set start and end subattributes
-     *        to 0.
-     */
-    if (attrs->validity.start != 0 || attrs->validity.end != 0) {
-        return PSA_SST_ERR_PARAM_ERROR;
-    }
-
-    /* FIXME: Check which bit attributes have been changed and check if those
-     *        can be modified or not.
-     */
-    err = sst_object_set_attributes(asset_uuid, s_token, attrs);
-
-    return err;
+    return _sst_am_set_attributes(client_id, asset_uuid, s_token, attrs);
 }
 
 enum psa_sst_err_t sst_am_create(uint32_t asset_uuid,
                                  const struct tfm_sst_token_t *s_token)
 {
-    enum psa_sst_err_t err;
-    struct sst_asset_policy_t *db_entry;
     int32_t client_id;
 
     if (tfm_core_get_caller_client_id(&client_id) != TFM_SUCCESS) {
         return PSA_SST_ERR_SYSTEM_ERROR;
     }
 
-    db_entry = sst_am_get_db_entry(client_id, asset_uuid, SST_PERM_WRITE);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
-    }
-
-    err = sst_object_create(asset_uuid, s_token, db_entry->type,
-                            db_entry->max_size);
-
-    return err;
+    return _sst_am_create(client_id, asset_uuid, s_token);
 }
 
 enum psa_sst_err_t sst_am_read(int32_t client_id, uint32_t asset_uuid,
@@ -432,38 +949,11 @@ enum psa_sst_err_t sst_am_read(int32_t client_id, uint32_t asset_uuid,
                                struct tfm_sst_buf_t *data)
 {
     int32_t caller_id;
-    struct sst_asset_policy_t *db_entry;
     enum psa_sst_err_t err;
     struct tfm_sst_buf_t local_data;
 
-    /* Check if it is a read by reference request */
-    if (client_id != SST_DIRECT_CLIENT_READ) {
-        /* Only secure partitions can request it */
-        if (sst_utils_validate_secure_caller() == PSA_SST_ERR_SUCCESS) {
-            /* Reference read access requested, check if the client has
-             * reference permission, otherwise reject the request.
-             */
-            db_entry = sst_am_get_db_entry(client_id, asset_uuid,
-                                           SST_PERM_REFERENCE);
-            if (db_entry == NULL) {
-                return PSA_SST_ERR_ASSET_NOT_FOUND;
-            }
-        } else {
-            /* A non-secure caller is not allowed to specify any client ID to
-             * request a read by reference.
-             */
-            return PSA_SST_ERR_ASSET_NOT_FOUND;
-        }
-    }
-
     if (tfm_core_get_caller_client_id(&caller_id) != TFM_SUCCESS) {
         return PSA_SST_ERR_SYSTEM_ERROR;
-    }
-
-    /* Check client ID permissions */
-    db_entry = sst_am_get_db_entry(caller_id, asset_uuid, SST_PERM_READ);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
     }
 
     /* Make a local copy of the iovec data structure */
@@ -473,16 +963,7 @@ enum psa_sst_err_t sst_am_read(int32_t client_id, uint32_t asset_uuid,
         return PSA_SST_ERR_ASSET_NOT_FOUND;
     }
 
-#ifndef SST_ENABLE_PARTIAL_ASSET_RW
-    if (data->offset != 0) {
-        return PSA_SST_ERR_PARAM_ERROR;
-    }
-#endif
-
-    err = sst_object_read(asset_uuid, s_token, local_data.data,
-                          local_data.offset, local_data.size);
-
-    return err;
+    return _sst_am_read(caller_id, client_id, asset_uuid, s_token, &local_data);
 }
 
 enum psa_sst_err_t sst_am_write(uint32_t asset_uuid,
@@ -491,17 +972,10 @@ enum psa_sst_err_t sst_am_write(uint32_t asset_uuid,
 {
     struct tfm_sst_buf_t local_data;
     enum psa_sst_err_t err;
-    struct sst_asset_policy_t *db_entry;
     int32_t client_id;
 
     if (tfm_core_get_caller_client_id(&client_id) != TFM_SUCCESS) {
         return PSA_SST_ERR_SYSTEM_ERROR;
-    }
-
-    /* Check client ID permissions */
-    db_entry = sst_am_get_db_entry(client_id, asset_uuid, SST_PERM_WRITE);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
     }
 
     /* Make a local copy of the iovec data structure */
@@ -511,43 +985,17 @@ enum psa_sst_err_t sst_am_write(uint32_t asset_uuid,
         return PSA_SST_ERR_ASSET_NOT_FOUND;
     }
 
-    /* Boundary check the incoming request */
-    err = sst_utils_check_contained_in(0, db_entry->max_size,
-                                       local_data.offset, local_data.size);
-
-    if (err != PSA_SST_ERR_SUCCESS) {
-        return err;
-    }
-
-#ifndef SST_ENABLE_PARTIAL_ASSET_RW
-    if (data->offset != 0) {
-        return PSA_SST_ERR_PARAM_ERROR;
-    }
-#endif
-
-    err = sst_object_write(asset_uuid, s_token, local_data.data,
-                           local_data.offset, local_data.size);
-
-    return err;
+    return _sst_am_write(client_id, asset_uuid, s_token, &local_data);
 }
 
 enum psa_sst_err_t sst_am_delete(uint32_t asset_uuid,
                                  const struct tfm_sst_token_t *s_token)
 {
-    enum psa_sst_err_t err;
-    struct sst_asset_policy_t *db_entry;
     int32_t client_id;
 
     if (tfm_core_get_caller_client_id(&client_id) != TFM_SUCCESS) {
         return PSA_SST_ERR_SYSTEM_ERROR;
     }
 
-    db_entry = sst_am_get_db_entry(client_id, asset_uuid, SST_PERM_WRITE);
-    if (db_entry == NULL) {
-        return PSA_SST_ERR_ASSET_NOT_FOUND;
-    }
-
-    err = sst_object_delete(asset_uuid, s_token);
-
-    return err;
+    return _sst_am_delete(client_id, asset_uuid, s_token);
 }

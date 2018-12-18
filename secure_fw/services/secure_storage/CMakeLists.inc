@@ -60,7 +60,6 @@ if (ENABLE_SECURE_STORAGE)
 	endif()
 
 	set (SECURE_STORAGE_C_SRC
-		"${SECURE_STORAGE_DIR}/tfm_sst_secure_api.c"
 		"${SECURE_STORAGE_DIR}/sst_asset_management.c"
 		"${SECURE_STORAGE_DIR}/sst_object_system.c"
 		"${SECURE_STORAGE_DIR}/sst_object_table.c"
@@ -70,6 +69,12 @@ if (ENABLE_SECURE_STORAGE)
 		"${SECURE_STORAGE_DIR}/flash_fs/sst_flash_fs.c"
 		"${SECURE_STORAGE_DIR}/flash_fs/sst_flash_fs_dblock.c"
 		"${SECURE_STORAGE_DIR}/flash_fs/sst_flash_fs_mblock.c")
+
+	if (TFM_PSA_API)
+		list(APPEND SECURE_STORAGE_C_SRC "${SECURE_STORAGE_DIR}/tfm_sst_secure_api_ipc.c")
+	else()
+		list(APPEND SECURE_STORAGE_C_SRC "${SECURE_STORAGE_DIR}/tfm_sst_secure_api.c")
+	endif()
 
 	if (SST_ENCRYPTION)
 		list(APPEND SECURE_STORAGE_C_SRC

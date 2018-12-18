@@ -46,6 +46,19 @@ struct tfm_sst_buf_t {
     uint32_t offset; /*!< Offset within asset */
 };
 
+#ifdef TFM_PSA_API
+/*!
+ * \struct tfm_sst_id_t
+ *
+ * \brief Structure to store id information.
+ *
+ */
+struct tfm_sst_id_t {
+    int32_t client_id;    /*!< Client id */
+    uint32_t asset_uuid;  /*!< Asset uuid */
+};
+#endif
+
 #ifdef __cplusplus
 }
 #endif

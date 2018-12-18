@@ -429,6 +429,7 @@ TFM_SST_NS_TEST(1005, "Thread_A")
         return;
     }
 
+#ifndef TFM_PSA_API
     /* Calls get information with a null struct info pointer */
     err = psa_sst_get_info(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE, NULL);
     if (err != PSA_SST_ERR_PARAM_ERROR) {
@@ -436,6 +437,7 @@ TFM_SST_NS_TEST(1005, "Thread_A")
                   "struct attributes pointer");
         return;
     }
+#endif
 
     /* Calls delete asset to clean up SST area for next test */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);
@@ -531,6 +533,7 @@ static void tfm_sst_test_1007_task_1(struct test_result_t *ret)
     ret->val = TEST_PASSED;
 }
 
+#ifndef TFM_PSA_API
 /**
  * \brief Calls write function with an invalid thread name.
  */
@@ -549,6 +552,7 @@ static void tfm_sst_test_1007_task_2(struct test_result_t *ret)
 
     ret->val = TEST_PASSED;
 }
+#endif
 
 /**
  * \brief Deletes asset to clean up the SST area for the next test.
@@ -578,11 +582,13 @@ static void tfm_sst_test_1007(struct test_result_t *ret)
         return;
     }
 
+#ifndef TFM_PSA_API
     /* Calls write function with an invalid thread name */
     tfm_sst_run_test(INVALID_THREAD_NAME, ret, tfm_sst_test_1007_task_2);
     if (ret->val != TEST_PASSED) {
         return;
     }
+#endif
 
     /* Deletes asset to clean up the SST area for the next test */
     tfm_sst_run_test("Thread_A", ret, tfm_sst_test_1007_task_3);
@@ -610,6 +616,7 @@ TFM_SST_NS_TEST(1008, "Thread_A")
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write function with data pointer set to NULL */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -617,6 +624,7 @@ TFM_SST_NS_TEST(1008, "Thread_A")
         TEST_FAIL("Write should fail with data pointer set to NULL");
         return;
     }
+#endif
 
     /* Calls delete asset to clean up SST area for next test */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);
@@ -863,6 +871,7 @@ TFM_SST_NS_TEST(1012, "Thread_A")
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls read with null read data pointer */
     err = psa_sst_read(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                        io_data.size, io_data.offset, io_data.data);
@@ -870,6 +879,7 @@ TFM_SST_NS_TEST(1012, "Thread_A")
         TEST_FAIL("Read with read data pointer set to NULL should fail");
         return;
     }
+#endif
 
     /* Calls delete asset to clean up SST area for next test */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);
@@ -1763,6 +1773,7 @@ TFM_SST_NS_TEST(1022, "Thread_A")
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a ROM address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1778,6 +1789,7 @@ TFM_SST_NS_TEST(1022, "Thread_A")
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     /* Deletes asset to clean up the SST area */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);
@@ -1810,6 +1822,7 @@ TFM_SST_NS_TEST(1023, "Thread_A")
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a device address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1825,6 +1838,7 @@ TFM_SST_NS_TEST(1023, "Thread_A")
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     /* Deletes asset to clean up the SST area */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);
@@ -1857,6 +1871,7 @@ TFM_SST_NS_TEST(1024, "Thread_A")
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a non-existing address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1872,6 +1887,7 @@ TFM_SST_NS_TEST(1024, "Thread_A")
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     /* Deletes asset to clean up the SST area */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);
@@ -1904,6 +1920,7 @@ TFM_SST_NS_TEST(1025, "Thread_A")
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a secure address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1919,6 +1936,7 @@ TFM_SST_NS_TEST(1025, "Thread_A")
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     /* Deletes asset to clean up the SST area */
     err = psa_sst_delete(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE);

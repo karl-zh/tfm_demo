@@ -273,6 +273,7 @@ static void tfm_sst_test_2003(struct test_result_t *ret)
         return;
     }
 
+#ifndef TFM_PSA_API
     /* Calls get information with invalid struct attributes pointer */
     err = psa_sst_get_info(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE, NULL);
     if (err != PSA_SST_ERR_PARAM_ERROR) {
@@ -280,6 +281,7 @@ static void tfm_sst_test_2003(struct test_result_t *ret)
                   "struct info pointer");
         return;
     }
+#endif
 
     ret->val = TEST_PASSED;
 }
@@ -391,6 +393,7 @@ static void tfm_sst_test_2005(struct test_result_t *ret)
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write function with data pointer set to NULL */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -398,6 +401,7 @@ static void tfm_sst_test_2005(struct test_result_t *ret)
         TEST_FAIL("Write should fail with data pointer set to NULL");
         return;
     }
+#endif
 
     ret->val = TEST_PASSED;
 }
@@ -572,6 +576,7 @@ static void tfm_sst_test_2008(struct test_result_t *ret)
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls read with invalid data pointer */
     err = psa_sst_read(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                        io_data.size, io_data.offset, io_data.data);
@@ -579,6 +584,7 @@ static void tfm_sst_test_2008(struct test_result_t *ret)
         TEST_FAIL("Read with read data pointer set to NULL should fail");
         return;
     }
+#endif
 
     ret->val = TEST_PASSED;
 }
@@ -1319,6 +1325,7 @@ static void tfm_sst_test_2017(struct test_result_t *ret)
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a ROM address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1334,6 +1341,7 @@ static void tfm_sst_test_2017(struct test_result_t *ret)
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     ret->val = TEST_PASSED;
 }
@@ -1365,6 +1373,7 @@ static void tfm_sst_test_2018(struct test_result_t *ret)
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a device address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1380,6 +1389,7 @@ static void tfm_sst_test_2018(struct test_result_t *ret)
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     ret->val = TEST_PASSED;
 }
@@ -1411,6 +1421,7 @@ static void tfm_sst_test_2019(struct test_result_t *ret)
     io_data.size = 1;
     io_data.offset = 0;
 
+#ifndef TFM_PSA_API
     /* Calls write with a non-existing address location */
     err = psa_sst_write(asset_uuid, ASSET_TOKEN, ASSET_TOKEN_SIZE,
                         io_data.size, io_data.offset, io_data.data);
@@ -1426,6 +1437,7 @@ static void tfm_sst_test_2019(struct test_result_t *ret)
         TEST_FAIL("Read should fail for an illegal location");
         return;
     }
+#endif
 
     ret->val = TEST_PASSED;
 }
