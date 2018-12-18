@@ -91,7 +91,7 @@ psa_handle_t tfm_svcall_psa_connect(uint32_t *args, int32_t ns_caller)
 
     /* No input or output needed for connect message */
     msg = tfm_spm_create_msg(service, PSA_NULL_HANDLE, PSA_IPC_CONNECT,
-                             NULL, 0, NULL, 0);
+                             ns_caller, NULL, 0, NULL, 0);
     if (!msg) {
         return PSA_NULL_HANDLE;
     }
@@ -193,8 +193,8 @@ psa_status_t tfm_svcall_psa_call(uint32_t *args, int32_t ns_caller)
      * FixMe: Need to check if the message is unrecognized by the RoT
      * Service or incorrectly formatted.
      */
-    msg = tfm_spm_create_msg(service, handle, PSA_IPC_CALL, invecs, in_num,
-                             outvecs, out_num);
+    msg = tfm_spm_create_msg(service, handle, PSA_IPC_CALL, ns_caller, invecs,
+                             in_num, outvecs, out_num);
     if (!msg) {
         /* FixMe: Need to implement one mechanism to resolve this failure. */
         tfm_panic();
@@ -235,7 +235,7 @@ void tfm_svcall_psa_close(uint32_t *args, int32_t ns_caller)
     }
 
     /* No input or output needed for close message */
-    msg = tfm_spm_create_msg(service, handle, PSA_IPC_DISCONNECT,
+    msg = tfm_spm_create_msg(service, handle, PSA_IPC_DISCONNECT, ns_caller,
                              NULL, 0, NULL, 0);
     if (!msg) {
         /* FixMe: Need to implement one mechanism to resolve this failure. */

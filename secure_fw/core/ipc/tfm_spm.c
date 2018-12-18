@@ -24,6 +24,7 @@
 #include "tfm_spm_signal_defs.h"
 #include "tfm_thread.h"
 #include "region_defs.h"
+#include "tfm_nspm.h"
 
 static struct tfm_spm_partition_t g_spm_partition[SPM_MAX_PARTITIONS] = {};
 
@@ -312,7 +313,7 @@ struct tfm_msg_body_t *tfm_spm_get_msg_from_handle(psa_handle_t msg_handle)
 
 struct tfm_msg_body_t *tfm_spm_create_msg(struct tfm_spm_service_t *service,
                                           psa_handle_t handle,
-                                          uint32_t type,
+                                          uint32_t type, bool ns_caller,
                                           psa_invec *invec, size_t in_len,
                                           psa_outvec *outvec, size_t out_len)
 {
@@ -340,7 +341,11 @@ struct tfm_msg_body_t *tfm_spm_create_msg(struct tfm_spm_service_t *service,
     msg->service = service;
     msg->handle = handle;
     /* Get current partition id */
-    msg->msg.client_id = tfm_spm_partition_get_running_partition_id_ext();
+    if (ns_caller) {
+        msg->msg.client_id = tfm_nspm_get_current_client_id();
+    } else {
+        msg->msg.client_id = tfm_spm_partition_get_running_partition_id_ext();
+    }
 
     /* Copy contents */
     msg->msg.type = type;
