@@ -88,7 +88,7 @@
 
 #define FLASH_SST_AREA_OFFSET           (FLASH_AREA_IMAGE_SCRATCH_OFFSET + \
                                          FLASH_AREA_IMAGE_SCRATCH_SIZE)
-#define FLASH_SST_AREA_SIZE             (0x5000)   /* 20 KB */
+#define FLASH_SST_AREA_SIZE             (0x3000)   /* 12 KB */
 
 #define FLASH_NV_COUNTERS_AREA_OFFSET   (FLASH_SST_AREA_OFFSET + \
                                          FLASH_SST_AREA_SIZE)

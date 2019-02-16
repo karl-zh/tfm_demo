@@ -47,5 +47,6 @@ endif()
 
 #Export secure services as module
 set (TFM_MODULAR ON)
+set (SST_RAM_FS ON)
 
 include ("${CMAKE_CURRENT_LIST_DIR}/CommonConfig.cmake")
