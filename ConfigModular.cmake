@@ -28,6 +28,7 @@ endif()
 #definitions) based on these.
 set (REGRESSION False)
 set (CORE_TEST False)
+set (CORE_IPC True)
 
 # TF-M isolation level: 1..3
 set (TFM_LVL 1)
