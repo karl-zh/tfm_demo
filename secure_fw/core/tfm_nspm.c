@@ -13,6 +13,7 @@
 #include "tfm_utils.h"
 #include "tfm_internal.h"
 #endif
+#include "platform/include/tfm_plat_mhu.h"
 
 #ifndef TFM_MAX_NS_THREAD_COUNT
 #define TFM_MAX_NS_THREAD_COUNT 8
@@ -313,6 +314,13 @@ psa_status_t tfm_nspm_thread_entry(void)
 #ifdef TFM_CORE_DEBUG
     /* Jumps to non-secure code */
     LOG_MSG("Jumping to non-secure code...");
+#endif
+#ifdef TFM_DUAL_CORE_IPC
+    LOG_MSG("Waking up the second core.\r\n");
+
+    while (1) {
+        ;
+    }
 #endif
 
     jump_to_ns_code();

@@ -97,7 +97,7 @@ int32_t tfm_core_init(void)
 
     tfm_core_validate_boot_data();
 
-    tfm_spm_hal_init_isolation_hw();
+//    tfm_spm_hal_init_isolation_hw();
 
     configure_ns_code();
 
@@ -169,8 +169,24 @@ void tfm_core_spm_request_handler(const struct tfm_exc_stack_t *svc_ctx)
     }
 }
 
+#ifdef TFM_DUAL_CORE_IPC
+static void tfm_wakeup_cpu1(void)
+{
+    /* Wakeup CPU1
+     * FIXME: This is platform specific.
+     */
+   struct sysctrl_t *ptr = (struct sysctrl_t *)CMSDK_SYSCTRL_BASE_S;
+   ptr->initsvtor1 = tfm_spm_hal_get_ns_VTOR();
+   ptr->cpuwait = 0;
+}
+#endif
+
 int main(void)
 {
+#ifdef TFM_DUAL_CORE_IPC
+		tfm_wakeup_cpu1();
+#endif
+
     if (tfm_core_init() != 0) {
         /* Placeholder for error handling, currently ignored. */
     }
