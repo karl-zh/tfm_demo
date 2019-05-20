@@ -314,6 +314,11 @@ psa_status_t tfm_nspm_thread_entry(void)
     /* Jumps to non-secure code */
     LOG_MSG("Jumping to non-secure code...");
 #endif
+#ifdef TFM_DUAL_CORE_IPC
+	LOG_MSG("tfm_nspm_thread exit");
+	while (1) {
+	}
+#endif
 
     jump_to_ns_code();
 

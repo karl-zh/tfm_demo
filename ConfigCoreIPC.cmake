@@ -38,6 +38,10 @@ if(NOT DEFINED BL2)
 	set(BL2 True)
 endif()
 
+set(BL2 False)
+
+set (DUAL_CORE_IPC True)
+
 if(NOT DEFINED MCUBOOT_NO_SWAP)
 	set(MCUBOOT_NO_SWAP False)
 endif()
