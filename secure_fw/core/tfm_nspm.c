@@ -12,6 +12,10 @@
 #ifdef TFM_PSA_API
 #include "tfm_utils.h"
 #include "tfm_internal.h"
+#ifdef TFM_DUAL_CORE_IPC
+#include "tfm_thread.h"
+#include "platform/include/tfm_spm_hal.h"
+#endif
 #endif
 
 #ifndef TFM_MAX_NS_THREAD_COUNT
@@ -307,12 +311,37 @@ enum tfm_status_e tfm_register_client_id (int32_t ns_client_id)
 #endif
 
 #ifdef TFM_PSA_API
+#ifdef TFM_DUAL_CORE_IPC
+static void tfm_wakeup_cpu1(void)
+{
+    /* Wakeup CPU1
+     * FIXME: This is platform specific.
+     */
+   struct sysctrl_t *ptr = (struct sysctrl_t *)CMSDK_SYSCTRL_BASE_S;
+   ptr->initsvtor1 = tfm_spm_hal_get_ns_VTOR();
+   ptr->cpuwait = 0;
+}
+#endif
+
 __attribute__((section("SFN")))
 psa_status_t tfm_nspm_thread_entry(void)
 {
 #ifdef TFM_CORE_DEBUG
+#ifdef TFM_DUAL_CORE_IPC
+    /* Jumps to non-secure code */
+    LOG_MSG("Waking up the second CPU...");
+#else /* TFM_DUAL_CORE_IPC */
     /* Jumps to non-secure code */
     LOG_MSG("Jumping to non-secure code...");
+#endif /* TFM_DUAL_CORE_IPC */
+#endif /* TFM_CORE_DEBUG */
+
+#ifdef TFM_DUAL_CORE_IPC
+    tfm_wakeup_cpu1();
+
+    while (1) {
+        tfm_thrd_activate_schedule();
+    }
 #endif
 
     jump_to_ns_code();
