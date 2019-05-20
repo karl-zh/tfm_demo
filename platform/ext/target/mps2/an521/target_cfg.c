@@ -203,13 +203,14 @@ void nvic_interrupt_target_state_cfg()
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
 void nvic_interrupt_enable()
 {
-    struct spctrl_def* spctrl = CMSDK_SPCTRL;
+//    struct spctrl_def* spctrl = CMSDK_SPCTRL;
 
     /* MPC interrupt enabling */
     Driver_SRAM1_MPC.EnableInterrupt();
     Driver_SRAM2_MPC.EnableInterrupt();
     NVIC_EnableIRQ(MPC_IRQn);
 
+#if 0
     /* PPC interrupt enabling */
     /* Clear pending PPC interrupts */
     /* In the PPC configuration function, we have used the Non-Secure
@@ -227,6 +228,7 @@ void nvic_interrupt_enable()
     spctrl->secppcinten |= CMSDK_APB_PPCEXP2_INT_POS_MASK;
     spctrl->secppcinten |= CMSDK_APB_PPCEXP3_INT_POS_MASK;
     NVIC_EnableIRQ(PPC_IRQn);
+#endif
 }
 
 /*------------------- SAU/IDAU configuration functions -----------------------*/
