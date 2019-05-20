@@ -220,9 +220,9 @@ enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
 enum tfm_plat_err_t nvic_interrupt_enable(void)
 {
+#if 0
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
     int32_t ret = ARM_DRIVER_OK;
-
     /* MPC interrupt enabling */
     ret = Driver_SRAM1_MPC.EnableInterrupt();
     if (ret != ARM_DRIVER_OK) {
@@ -251,6 +251,7 @@ enum tfm_plat_err_t nvic_interrupt_enable(void)
     spctrl->secppcinten |= CMSDK_APB_PPCEXP2_INT_POS_MASK;
     spctrl->secppcinten |= CMSDK_APB_PPCEXP3_INT_POS_MASK;
     NVIC_EnableIRQ(PPC_IRQn);
+#endif
 
     return TFM_PLAT_ERR_SUCCESS;
 }

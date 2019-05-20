@@ -117,7 +117,7 @@ int32_t tfm_core_init(void)
 
     tfm_core_validate_boot_data();
 
-    plat_err = tfm_spm_hal_init_isolation_hw();
+//    plat_err = tfm_spm_hal_init_isolation_hw();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_ERROR_GENERIC;
     }
