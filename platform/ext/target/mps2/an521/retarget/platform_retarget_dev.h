@@ -33,8 +33,23 @@
 #include "ppc_sse200_drv.h"
 #include "arm_uart_drv.h"
 #include "timer_cmsdk/timer_cmsdk.h"
+#include "mhu_sse200_drv.h"
 
 /* ======= Defines peripheral configuration structures ======= */
+/* ARM MHU driver structures */
+#ifdef ARM_MHU0_S
+extern struct arm_mhu_sse_200_dev_t ARM_MHU0_DEV_S;
+#endif
+#ifdef ARM_MHU0_NS
+extern struct arm_mhu_sse_200_dev_t ARM_MHU0_DEV_NS;
+#endif
+
+#ifdef ARM_MHU1_S
+extern struct arm_mhu_sse_200_dev_t ARM_MHU1_DEV_S;
+#endif
+#ifdef ARM_MHU1_NS
+extern struct arm_mhu_sse_200_dev_t ARM_MHU1_DEV_NS;
+#endif
 /* ARM UART driver structures */
 #ifdef ARM_UART0_S
 extern struct arm_uart_dev_t ARM_UART0_DEV_S;

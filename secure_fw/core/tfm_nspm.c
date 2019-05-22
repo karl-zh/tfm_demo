@@ -13,6 +13,7 @@
 #include "tfm_utils.h"
 #include "tfm_internal.h"
 #endif
+#include "platform/include/tfm_plat_mhu.h"
 
 #ifndef TFM_MAX_NS_THREAD_COUNT
 #define TFM_MAX_NS_THREAD_COUNT 8
@@ -315,7 +316,10 @@ psa_status_t tfm_nspm_thread_entry(void)
     LOG_MSG("Jumping to non-secure code...");
 #endif
 #ifdef TFM_DUAL_CORE_IPC
+	LOG_MSG("send to cpu1");
+	tfm_plat_mhu_set(TFM_CPU1, 0);
 	LOG_MSG("tfm_nspm_thread exit");
+
 	while (1) {
 	}
 #endif

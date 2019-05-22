@@ -33,6 +33,10 @@
 /* ARM Peripheral Protection Controllers (PPC) */
 #define APB_PPCEXP2_S
 
+/* ARM MHU */
+#define ARM_MHU0_S
+#define ARM_MHU1_S
+
 /* ARM UART */
 #define DEFAULT_UART_BAUDRATE  9600
 #define ARM_UART0_S

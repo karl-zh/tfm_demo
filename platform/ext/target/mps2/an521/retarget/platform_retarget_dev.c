@@ -27,6 +27,29 @@
 #include "platform_retarget.h"
 #include "system_cmsdk_mps2_an521.h"
 
+/* ARM MHU driver structures */
+#ifdef ARM_MHU0_S
+static const struct arm_mhu_sse_200_dev_cfg_t ARM_MHU0_DEV_CFG_S = {
+    .base = MHU0_BASE_S};
+struct arm_mhu_sse_200_dev_t ARM_MHU0_DEV_S = {&(ARM_MHU0_DEV_CFG_S)};
+#endif
+#ifdef ARM_MHU0_NS
+static const struct arm_mhu_sse_200_dev_cfg_t ARM_MHU0_DEV_CFG_NS = {
+    .base = MHU0_BASE_NS};
+struct arm_mhu_sse_200_dev_t ARM_MHU0_DEV_NS = {&(ARM_MHU0_DEV_CFG_NS)};
+#endif
+
+#ifdef ARM_MHU1_S
+static const struct arm_mhu_sse_200_dev_cfg_t ARM_MHU1_DEV_CFG_S = {
+    .base = MHU1_BASE_S};
+struct arm_mhu_sse_200_dev_t ARM_MHU1_DEV_S = {&(ARM_MHU1_DEV_CFG_S)};
+#endif
+#ifdef ARM_MHU1_NS
+static const struct arm_mhu_sse_200_dev_cfg_t ARM_MHU1_DEV_CFG_NS = {
+    .base = MHU1_BASE_NS};
+struct arm_mhu_sse_200_dev_t ARM_MHU1_DEV_NS = {&(ARM_MHU1_DEV_CFG_NS)};
+#endif
+
 /* ARM UART driver structures */
 #ifdef ARM_UART0_S
 static const struct arm_uart_dev_cfg_t ARM_UART0_DEV_CFG_S = {
