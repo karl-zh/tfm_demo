@@ -15,6 +15,10 @@
 #endif
 #include "platform/include/tfm_plat_mhu.h"
 
+#ifdef TFM_DUAL_CORE_IPC
+#include "tfm_openamp.h"
+#endif
+
 #ifndef TFM_MAX_NS_THREAD_COUNT
 #define TFM_MAX_NS_THREAD_COUNT 8
 #endif
@@ -316,9 +320,10 @@ psa_status_t tfm_nspm_thread_entry(void)
     LOG_MSG("Jumping to non-secure code...");
 #endif
 #ifdef TFM_DUAL_CORE_IPC
-	LOG_MSG("send to cpu1");
-	tfm_plat_mhu_set(TFM_CPU1, 0);
+//	LOG_MSG("send to cpu1");
+//	tfm_plat_mhu_set(TFM_CPU1, 0);
 	LOG_MSG("tfm_nspm_thread exit");
+	tfm_openamp_init();
 
 	while (1) {
 	}

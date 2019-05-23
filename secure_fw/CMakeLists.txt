@@ -40,6 +40,10 @@ else()
 	include(${SECURE_FW_DIR}/core/CMakeLists.inc)
 endif()
 
+if(DUAL_CORE_IPC)
+	include(${SECURE_FW_DIR}/openAMP/CMakeLists.inc)
+endif()
+
 set(BUILD_CMSIS_CORE On)
 set(BUILD_RETARGET On)
 set(BUILD_NATIVE_DRIVERS On)
@@ -183,6 +187,10 @@ function(set_up_secure_fw_build)
 		target_link_libraries(${EXE_NAME} tfm_attest tfm_crypto tfm_storage tfm_audit tfm_platform tfm_attest)
 	endif()
 
+	if(DUAL_CORE_IPC)
+		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../zephyr/ext/hal/libmetal/libmetal/build_libmetal/lib/libmetal.a)
+		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../zephyr/ext/lib/ipc/open-amp/open-amp/build_openamp/lib/libopen_amp.a)
+	endif()
 
 	embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_LVL=${TFM_LVL}")
 
