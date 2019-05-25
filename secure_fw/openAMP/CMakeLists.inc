@@ -18,5 +18,5 @@ unset(SS_OPENAMP_C_SRC)
 
 #Setting include directories
 embedded_include_directories(PATH ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE)
-embedded_include_directories(PATH ${TFM_ROOT_DIR}/../zephyr/ext/lib/ipc/open-amp/open-amp/lib/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/../zephyr/ext/hal/libmetal/libmetal/build_libmetal/lib/include ABSOLUTE)
+embedded_include_directories(PATH ${TFM_ROOT_DIR}/../zephyr/ext/lib/ipc/open-amp/open-amp/lib/include ABSOLUTE)
