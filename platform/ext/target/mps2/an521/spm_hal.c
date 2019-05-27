@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include "platform/include/tfm_spm_hal.h"
-#include "platform/include/tfm_plat_mhu.h"
 #include "spm_api.h"
 #include "spm_db.h"
 #include "tfm_platform_core_api.h"
@@ -374,15 +373,6 @@ void PPC_Handler(void)
 
     /* Inform TF-M core that isolation boundary has been violated */
     tfm_access_violation_handler();
-}
-
-void MHU0_Handler(void)
-{
-	uint32_t doorbell_status;
-
-    LOG_MSG("MHU0... Handler!!!");
-    (void)tfm_plat_mhu_get_status(TFM_CPU0, &doorbell_status);
-    (void)tfm_plat_mhu_clear(TFM_CPU0, doorbell_status);
 }
 
 uint32_t tfm_spm_hal_get_ns_VTOR(void)

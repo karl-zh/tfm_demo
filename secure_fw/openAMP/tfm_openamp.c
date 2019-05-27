@@ -5,6 +5,7 @@
  *
  */
 
+#include "platform/include/tfm_plat_mhu.h"
 #include <openamp/open_amp.h>
 #include <metal/device.h>
 #include "tfm_openamp.h"
@@ -32,6 +33,9 @@ static struct metal_device shm_device = {
 };
 
 static volatile unsigned int received_data;
+static volatile unsigned int data_sem = 0;
+static volatile unsigned int ept_sem = 0;
+static volatile unsigned int data_rx_sem = 0;
 
 static struct virtio_vring_info rvrings[2] = {
 	[0] = {
@@ -46,24 +50,32 @@ static struct rpmsg_virtio_device rvdev;
 static struct metal_io_region *io;
 static struct virtqueue *vq[2];
 
+#define WAIT_DATA_FOREVER do{while (data_sem == 0){} data_sem--; virtqueue_notification(vq[0]);} while(0)
+
+//#define WAIT_RX_FOREVER do{while (data_rx_sem == 0){} data_rx_sem--;} while(0)
+
 static unsigned char virtio_get_status(struct virtio_device *vdev)
 {
-//	return VIRTIO_CONFIG_STATUS_DRIVER_OK;
+	return VIRTIO_CONFIG_STATUS_DRIVER_OK;
 }
 
 static void virtio_set_status(struct virtio_device *vdev, unsigned char status)
 {
+	LOG_MSG(__func__);
+	*(uint32_t *)VDEV_STATUS_ADDR = status;
 //	sys_write8(status, VDEV_STATUS_ADDR);
 }
 
 static uint32_t virtio_get_features(struct virtio_device *vdev)
 {
-//	return 1 << VIRTIO_RPMSG_F_NS;
+	LOG_MSG(__func__);
+	return 1 << VIRTIO_RPMSG_F_NS;
 }
 
 static void virtio_set_features(struct virtio_device *vdev,
 				uint32_t features)
 {
+	LOG_MSG(__func__);
 }
 
 static void virtio_notify(struct virtqueue *vq)
@@ -71,6 +83,7 @@ static void virtio_notify(struct virtqueue *vq)
 //	uint32_t dummy_data = 0x55005500; /* Some data must be provided */
 
 //	ipm_send(ipm_handle, 0, 0, &dummy_data, sizeof(dummy_data));
+	tfm_plat_mhu_set(1, 0);
 }
 
 struct virtio_dispatch dispatch = {
@@ -90,11 +103,23 @@ struct virtio_dispatch dispatch = {
 //	k_sem_give(&data_sem);
 //}
 
+void MHU0_Handler(void)
+{
+	uint32_t doorbell_status;
+
+	data_sem++;
+	(void)tfm_plat_mhu_get_status(TFM_CPU0, &doorbell_status);
+	(void)tfm_plat_mhu_clear(TFM_CPU0, doorbell_status);
+}
+
 int endpoint_cb(struct rpmsg_endpoint *ept, void *data,
 		size_t len, uint32_t src, void *priv)
 {
-	LOG_MSG(__func__);
-//	received_data = *((unsigned int *) data);
+	received_data = *((unsigned int *) data);
+
+//	LOG_MSG(__func__);
+
+//	data_rx_sem++;
 
 //	k_sem_give(&data_rx_sem);
 
@@ -120,6 +145,8 @@ void ns_bind_cb(struct rpmsg_device *rdev, const char *name, uint32_t dest)
 			rpmsg_service_unbind);
 
 	LOG_MSG(__func__);
+
+	ept_sem++;
 //	k_sem_give(&ept_sem);
 }
 
@@ -127,7 +154,7 @@ static struct rpmsg_virtio_shm_pool shpool;
 
 void tfm_openamp_init(void)
 {
-//	unsigned int message = 0U;
+	unsigned int message = 0U;
 	int status = 0;
 	struct metal_device *device;
 	struct metal_init_params metal_params = METAL_INIT_DEFAULTS;
@@ -195,5 +222,33 @@ void tfm_openamp_init(void)
 		return;
 	}
 	LOG_MSG("rpmsg_init_vdev Done!\n");
+
+	/* Since we are using name service, we need to wait for a response
+	 * from NS setup and than we need to process it
+	 */
+	WAIT_DATA_FOREVER;
+	while (ept_sem == 0){} ept_sem--;
+	LOG_MSG("response to NS Done!\n");
+
+	while (message < 100) {
+		status = rpmsg_send(ep, &message, sizeof(message));
+		if (status < 0) {
+			LOG_MSG("send_message failed\r\n");
+			goto _cleanup;
+		}
+
+//		WAIT_RX_FOREVER;
+		WAIT_DATA_FOREVER;
+		message = received_data;
+		printf("Master core received a message %d\r\n", message);
+
+		message++;
+	}
+
+	_cleanup:
+		rpmsg_deinit_vdev(&rvdev);
+		metal_finish();
+
+		LOG_MSG("OpenAMP demo ended.\n");
 
 }
