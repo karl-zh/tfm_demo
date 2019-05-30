@@ -11,6 +11,12 @@
 #include "tfm_openamp.h"
 #include "secure_utilities.h"
 
+#include "erpc_psa_api_server.h"
+#include "erpc_common.h"
+#include "erpc_mbf_setup.h"
+#include "erpc_transport_setup.h"
+#include "erpc_server_setup.h"
+
 static metal_phys_addr_t shm_physmap[] = { SHM_START_ADDR };
 static struct metal_device shm_device = {
 	.name = SHM_DEVICE_NAME,
@@ -150,6 +156,60 @@ void ns_bind_cb(struct rpmsg_device *rdev, const char *name, uint32_t dest)
 //	k_sem_give(&ept_sem);
 }
 
+int rpmsg_openamp_send(struct rpmsg_endpoint *ept, const void *data,
+			     int len)
+{
+	if (ept->dest_addr == RPMSG_ADDR_ANY)
+		return RPMSG_ERR_ADDR;
+	return rpmsg_send_offchannel_raw(ept, ept->addr, ept->dest_addr, data,
+					 len, true);
+}
+
+int rpmsg_openamp_read(struct rpmsg_endpoint *ept, char *data,
+			     int len)
+{
+}
+
+/*!
+ * @brief erpcMatrixMultiply function implementation.
+ *
+ * This is the implementation of the erpcMatrixMultiply function called by the primary core.
+ *
+ * @param matrix1 First matrix
+ * @param matrix2 Second matrix
+ * @param result_matrix Result matrix
+ */
+void erpcMatrixMultiply(Matrix matrix1, Matrix matrix2, Matrix result_matrix)
+{
+	int32_t i, j, k;
+	const int32_t matrix_size = 5;
+
+	LOG_MSG("Calculating the matrix multiplication...\r\n");
+
+	/* Clear the result matrix */
+	for (i = 0; i < matrix_size; ++i)
+	{
+		for (j = 0; j < matrix_size; ++j)
+		{
+			result_matrix[i][j] = 0;
+		}
+	}
+
+	/* Multiply two matrices */
+	for (i = 0; i < matrix_size; ++i)
+	{
+		for (j = 0; j < matrix_size; ++j)
+		{
+			for (k = 0; k < matrix_size; ++k)
+			{
+				result_matrix[i][j] += matrix1[i][k] * matrix2[k][j];
+			}
+		}
+	}
+
+	LOG_MSG("Done!\r\n");
+}
+
 static struct rpmsg_virtio_shm_pool shpool;
 
 void tfm_openamp_init(void)
@@ -229,6 +289,20 @@ void tfm_openamp_init(void)
 	WAIT_DATA_FOREVER;
 	while (ept_sem == 0){} ept_sem--;
 	LOG_MSG("response to NS Done!\n");
+
+	void * transport = erpc_transport_rpmsg_openamp_init(ep);
+	void * message_buffer_factory = erpc_mbf_static_init();
+
+	erpc_server_init(transport ,message_buffer_factory);
+
+	/* adding the service to the server */
+	erpc_add_service_to_server(create_MatrixMultiplyService_service());
+
+	LOG_MSG("MatrixMultiply service added\r\n");
+	while (1) {
+		/* process message */
+		erpc_server_poll();
+	}
 
 	while (message < 100) {
 		status = rpmsg_send(ep, &message, sizeof(message));
