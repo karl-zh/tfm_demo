@@ -183,9 +183,6 @@ static void tfm_wakeup_cpu1(void)
 
 int main(void)
 {
-#ifdef TFM_DUAL_CORE_IPC
-		tfm_wakeup_cpu1();
-#endif
 
     if (tfm_core_init() != 0) {
         /* Placeholder for error handling, currently ignored. */
@@ -196,6 +193,10 @@ int main(void)
     }
 
     tfm_spm_hal_setup_isolation_hw();
+
+#ifdef TFM_DUAL_CORE_IPC
+	tfm_wakeup_cpu1();
+#endif
 
 #ifndef TFM_PSA_API
     tfm_spm_partition_set_state(TFM_SP_CORE_ID, SPM_PARTITION_STATE_RUNNING);
