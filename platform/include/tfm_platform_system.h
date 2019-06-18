@@ -45,6 +45,13 @@ enum tfm_plat_err_t
 tfm_platform_hal_pin_service(const psa_invec  *in_vec,  uint32_t num_invec,
                              const psa_outvec *out_vec, uint32_t num_outvec);
 
+/**
+ * \brief Get the current CPU Id
+ *
+ * \return Returns the CPU Id \ref tfm_cpu_id_t
+ */
+enum tfm_cpu_id_t tfm_platform_hal_get_cpu_id(void);
+
 #ifdef __cplusplus
 }
 #endif
