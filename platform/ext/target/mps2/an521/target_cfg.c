@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 ARM Limited
+ * Copyright (c) 2017-2019 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,6 +198,8 @@ void nvic_interrupt_target_state_cfg()
     NVIC_ClearTargetState(UARTTX1_IRQn);
     NVIC_ClearTargetState(UART1_IRQn);
 #endif
+
+    NVIC_ClearTargetState(MHU0_IRQn);
 }
 
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
@@ -229,6 +231,9 @@ void nvic_interrupt_enable()
     spctrl->secppcinten |= CMSDK_APB_PPCEXP3_INT_POS_MASK;
     NVIC_EnableIRQ(PPC_IRQn);
 #endif
+
+    /* Enable MHU0 interrupt */
+    NVIC_EnableIRQ(MHU0_IRQn);
 }
 
 /*------------------- SAU/IDAU configuration functions -----------------------*/
