@@ -15,6 +15,7 @@
 #ifdef TFM_DUAL_CORE_IPC
 #include "tfm_thread.h"
 #include "platform/include/tfm_spm_hal.h"
+#include "tfm_openamp.h"
 #endif
 #endif
 
@@ -338,6 +339,7 @@ psa_status_t tfm_nspm_thread_entry(void)
 
 #ifdef TFM_DUAL_CORE_IPC
     tfm_wakeup_cpu1();
+    tfm_openamp_init();
 
     while (1) {
         tfm_thrd_activate_schedule();

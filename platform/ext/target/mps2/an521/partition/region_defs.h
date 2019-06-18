@@ -34,6 +34,9 @@
 #define NS_MSP_STACK_SIZE       0x0000400
 #define NS_PSP_STACK_SIZE       0x0000C00
 
+#ifdef TFM_DUAL_CORE_IPC
+#define OPENAMP_SHARED_MEMORY_OFFSET 0x180000
+#endif
 /*
  * This size of buffer is big enough to store an attestation
  * token produced by initial attestation service
