@@ -80,6 +80,12 @@ Getting the source-code
     git clone https://git.trustedfirmware.org/trusted-firmware-m.git
     git clone https://github.com/ARMmbed/mbedtls.git -b mbedtls-2.7.9
     git clone https://github.com/ARM-software/CMSIS_5.git -b 5.2.0
+    git clone https://github.com/zephyrproject-rtos/libmetal.git
+    git clone https://github.com/zephyrproject-rtos/open-amp.git
+
+.. Note::
+   The libmetal and open-amp are only for building the dual core TFM usage with
+   leveraging 3rd party open source project.
 
 Build steps for the AN521 target platform:
 ==========================================

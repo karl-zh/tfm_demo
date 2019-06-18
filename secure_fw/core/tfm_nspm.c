@@ -15,6 +15,10 @@
 #endif
 #include "platform/include/tfm_plat_mhu.h"
 
+#ifdef TFM_DUAL_CORE_IPC
+#include "tfm_openamp.h"
+#endif
+
 #ifndef TFM_MAX_NS_THREAD_COUNT
 #define TFM_MAX_NS_THREAD_COUNT 8
 #endif
@@ -317,6 +321,7 @@ psa_status_t tfm_nspm_thread_entry(void)
 #endif
 #ifdef TFM_DUAL_CORE_IPC
     LOG_MSG("Waking up the second core.\r\n");
+    tfm_openamp_init();
 
     while (1) {
         ;

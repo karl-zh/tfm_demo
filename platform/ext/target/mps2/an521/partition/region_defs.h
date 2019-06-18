@@ -34,6 +34,9 @@
 #define NS_MSP_STACK_SIZE       0x0000400
 #define NS_PSP_STACK_SIZE       0x0000C00
 
+#ifdef TFM_DUAL_CORE_IPC
+#define OPENAMP_SHARED_MEMORY_OFFSET 0x180000
+#endif
 /*
  * MPC granularity is 128 KB on AN521 Castor MPS2 FPGA image. Alignment
  * of partitions is defined in accordance with this constraint.
