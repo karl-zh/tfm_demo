@@ -104,6 +104,10 @@ Getting the source-code
    process has changed from previous releases. Please refer to the `CMSIS_5`
    documentation for more details.
 
+.. Note::
+   The libmetal and open-amp are only for building the dual core TFM usage with
+   leveraging 3rd party open source project.
+
 Build steps for the AN521 target platform:
 ==========================================
 .. code-block:: bash

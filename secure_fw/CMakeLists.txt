@@ -49,6 +49,14 @@ else()
 endif()
 include(${SECURE_FW_DIR}/core/arch/CMakeLists.inc)
 
+if(DUAL_CORE_IPC)
+	if(COMPILER STREQUAL "GNUARM")
+		include(${SECURE_FW_DIR}/openAMP/CMakeLists.inc)
+	else()
+		message(FATAL_ERROR "No support for compiler '${CMAKE_C_COMPILER_ID}' with DUAL_CORE_IPC yet.")
+	endif()
+endif()
+
 set(BUILD_CMSIS_CORE On)
 set(BUILD_RETARGET On)
 set(BUILD_NATIVE_DRIVERS On)
@@ -128,6 +136,8 @@ if(DUAL_CORE_IPC)
 	set (LIBOPENAMP_TARGET_NAME "libopen_amp")
 	get_filename_component(LIBOPENAMP_SOURCE_DIR "${TFM_ROOT_DIR}/../open-amp/open-amp/" ABSOLUTE)
 	include(${TFM_ROOT_DIR}/BuildOpenAMP.cmake)
+
+	add_dependencies(${PROJECT_OBJ_LIB} libopen_amp)
 endif()
 
 # For the non-swapping BL2 configuration two executables need to be built.
