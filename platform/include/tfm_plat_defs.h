@@ -25,7 +25,15 @@ enum tfm_plat_err_t {
     TFM_PLAT_ERR_FORCE_INT_SIZE = INT_MAX
 };
 
+/* TFM MHU enumeration types */
+enum tfm_cpu_id_t {
+    TFM_CPU0 = 0,  /*!< CPU 0 */
+    TFM_CPU1,      /*!< CPU 1 */
+    TFM_CPU_MAX,   /*!< CPU MAX */
+};
+
 #if defined(TFM_LVL) && (TFM_LVL != 1)
+
 /*!
  * \def TFM_LINK_SET_RO_IN_PARTITION_SECTION(TFM_PARTITION_NAME)
  *

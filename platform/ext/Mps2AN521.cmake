@@ -140,6 +140,11 @@ elseif(BUILD_TARGET_HARDWARE_KEYS)
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/mps2/an521/dummy_crypto_keys.c")
 endif()
 
+if(DUAL_CORE_IPC)
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/mps2/an521/tfm_plat_mhu.c"
+              "${PLATFORM_DIR}/target/mps2/an521/native_drivers/mhu_sse200_drv.c")
+endif()
+
 if (NOT DEFINED BUILD_TARGET_NV_COUNTERS)
   message(FATAL_ERROR "Configuration variable BUILD_TARGET_NV_COUNTERS (true|false) is undefined!")
 elseif(BUILD_TARGET_NV_COUNTERS)

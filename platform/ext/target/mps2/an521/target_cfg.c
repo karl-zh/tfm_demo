@@ -214,6 +214,8 @@ enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
     NVIC_ClearTargetState(UART1_IRQn);
 #endif
 
+    NVIC_ClearTargetState(MHU0_IRQn);
+
     return TFM_PLAT_ERR_SUCCESS;
 }
 
@@ -252,6 +254,9 @@ enum tfm_plat_err_t nvic_interrupt_enable(void)
     spctrl->secppcinten |= CMSDK_APB_PPCEXP3_INT_POS_MASK;
     NVIC_EnableIRQ(PPC_IRQn);
 #endif
+
+    /* Enable MHU0 interrupt */
+    NVIC_EnableIRQ(MHU0_IRQn);
 
     return TFM_PLAT_ERR_SUCCESS;
 }

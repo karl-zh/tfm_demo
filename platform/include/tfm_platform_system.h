@@ -43,6 +43,13 @@ enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
                                                psa_invec *in_vec,
                                                psa_outvec *out_vec);
 
+/**
+ * \brief Get the current CPU Id
+ *
+ * \return Returns the CPU Id \ref tfm_cpu_id_t
+ */
+enum tfm_cpu_id_t tfm_platform_hal_get_cpu_id(void);
+
 #ifdef __cplusplus
 }
 #endif
