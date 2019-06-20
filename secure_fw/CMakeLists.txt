@@ -190,6 +190,7 @@ function(set_up_secure_fw_build)
 	if(DUAL_CORE_IPC)
 		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../open-amp/open-amp/build_openamp/lib/libopen_amp.a)
 		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../libmetal/libmetal/build_libmetal/lib/libmetal.a)
+		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../erpc/build/release/liberpc_server.a)
 	endif()
 
 	embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_LVL=${TFM_LVL}")

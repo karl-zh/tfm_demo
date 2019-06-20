@@ -82,10 +82,11 @@ Getting the source-code
     git clone https://github.com/ARM-software/CMSIS_5.git -b 5.2.0
     git clone https://github.com/zephyrproject-rtos/libmetal.git
     git clone https://github.com/zephyrproject-rtos/open-amp.git
+    git clone https://github.com/EmbeddedRPC/erpc.git
 
 .. Note::
-   The libmetal and open-amp are only for building the dual core TFM usage with
-   leveraging 3rd party open source project.
+   The libmetal, open-amp and erpc are only for building the dual core TFM
+   usage with leveraging 3rd party open source project.
 
 Build steps for the AN521 target platform:
 ==========================================

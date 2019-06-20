@@ -6,10 +6,18 @@
  */
 
 #include "platform/include/tfm_plat_mhu.h"
+#include "platform_retarget_dev.h"
 #include <openamp/open_amp.h>
 #include <metal/device.h>
 #include "tfm_openamp.h"
+#include "tfm_thread.h"
 #include "secure_utilities.h"
+
+#include "erpc_psa_api_server.h"
+#include "erpc_common.h"
+#include "erpc_mbf_setup.h"
+#include "erpc_transport_setup.h"
+#include "erpc_server_setup.h"
 
 static metal_phys_addr_t shm_physmap[] = { SHM_START_ADDR };
 static struct metal_device shm_device = {
@@ -35,7 +43,7 @@ static struct metal_device shm_device = {
 static volatile unsigned int received_data;
 static volatile unsigned int data_sem = 0;
 static volatile unsigned int ept_sem = 0;
-static volatile unsigned int data_rx_sem = 0;
+static volatile unsigned int data_rx_cnt = 0;
 
 static struct virtio_vring_info rvrings[2] = {
     [0] = {
@@ -53,6 +61,12 @@ static struct virtqueue *vq[2];
 #define WAIT_DATA_FOREVER do{while (data_sem == 0){} \
             data_sem--; virtqueue_notification(vq[0]);} \
             while(0)
+
+#define TBUFFER_SIZE 512
+static unsigned int tbuffer_wcnt = 0;
+static unsigned int tbuffer_rcnt = 0;
+static unsigned char __aligned(4) tbuffer[TBUFFER_SIZE];
+
 
 static unsigned char virtio_get_status(struct virtio_device *vdev)
 {
@@ -79,7 +93,7 @@ static void virtio_set_features(struct virtio_device *vdev,
 
 static void virtio_notify(struct virtqueue *vq)
 {
-    tfm_plat_mhu_set(1, 0);
+    tfm_plat_mhu_set(ARM_MHU_CPU1, 0);
 }
 
 struct virtio_dispatch dispatch = {
@@ -102,7 +116,18 @@ void MHU0_Handler(void)
 int endpoint_cb(struct rpmsg_endpoint *ept, void *data,
         size_t len, uint32_t src, void *priv)
 {
-    received_data = *((unsigned int *) data);
+    unsigned int i;
+
+    if ((TBUFFER_SIZE - data_rx_cnt) < len) {
+        LOG_MSG("No enough buffer while receiving.");
+        return RPMSG_ERR_NO_BUFF;
+    }
+
+    for (i = 0; i < len; i++) {
+        tbuffer[tbuffer_wcnt++] = *((unsigned char *) data + i);
+        tbuffer_wcnt &= (TBUFFER_SIZE - 1);
+    }
+    data_rx_cnt += len;
 
     return RPMSG_SUCCESS;
 }
@@ -126,6 +151,36 @@ void ns_bind_cb(struct rpmsg_device *rdev, const char *name, uint32_t dest)
     LOG_MSG(__func__);
 
     ept_sem++;
+}
+
+int rpmsg_openamp_send(struct rpmsg_endpoint *ept, const void *data,
+                 int len)
+{
+    if (ept->dest_addr == RPMSG_ADDR_ANY)
+        return RPMSG_ERR_ADDR;
+    return rpmsg_send_offchannel_raw(ept, ept->addr, ept->dest_addr, data,
+                     len, true);
+}
+
+int rpmsg_openamp_read(struct rpmsg_endpoint *ept, char *data,
+                 int len)
+{
+    unsigned int i;
+    do{while (data_sem == 0){} data_sem--;} while(0);
+    LOG_MSG("MSR got!\r\n");
+    virtqueue_notification(vq[0]);
+    while (data_rx_cnt < len) {
+        tfm_thrd_activate_schedule();
+        LOG_MSG("M SR sched!");
+    }
+
+    for (i = 0; i < len; i++) {
+        *((unsigned char *) data + i) = tbuffer[tbuffer_rcnt++];
+        tbuffer_rcnt &= (TBUFFER_SIZE - 1);
+    }
+    data_rx_cnt -= len;
+
+    return len;
 }
 
 static struct rpmsg_virtio_shm_pool shpool;
@@ -208,6 +263,24 @@ void tfm_openamp_init(void)
     while (ept_sem == 0){} ept_sem--;
     LOG_MSG("response to NS Done!\n");
 
+    message = 52;
+    status = rpmsg_send(ep, &message, sizeof(message));
+    if (status < 0) {
+        LOG_MSG("send_message test failed\r\n");
+    }
+
+#if 1
+    void * transport = erpc_transport_rpmsg_openamp_init(ep);
+    void * message_buffer_factory = erpc_mbf_static_init();
+
+    erpc_server_init(transport ,message_buffer_factory);
+
+    while (1) {
+        /* process message */
+        erpc_server_poll();
+    }
+#else
+
     while (message < 100) {
         status = rpmsg_send(ep, &message, sizeof(message));
         if (status < 0) {
@@ -223,6 +296,7 @@ void tfm_openamp_init(void)
     }
 
     _cleanup:
+#endif
         rpmsg_deinit_vdev(&rvdev);
         metal_finish();
 
