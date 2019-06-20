@@ -22,6 +22,8 @@
 #define VRING_ALIGNMENT     4
 #define VRING_SIZE          16
 
-extern void tfm_openamp_init(void);
+extern int tfm_openamp_init(void);
+extern struct rpmsg_endpoint *tfm_openamp_get_ep(void);
+extern void tfm_openamp_exit(void);
 
 #endif /* TFM_OPEN_AMP_H_ */

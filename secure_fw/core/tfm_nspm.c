@@ -16,6 +16,7 @@
 #include "tfm_thread.h"
 #include "platform/include/tfm_spm_hal.h"
 #include "tfm_openamp.h"
+#include "tfm_erpc.h"
 #endif
 #endif
 
@@ -339,11 +340,18 @@ psa_status_t tfm_nspm_thread_entry(void)
 
 #ifdef TFM_DUAL_CORE_IPC
     tfm_wakeup_cpu1();
-    tfm_openamp_init();
+    if (!tfm_openamp_init()) {
+        tfm_erpc_init(tfm_openamp_get_ep());
 
-    while (1) {
-        tfm_thrd_activate_schedule();
+        while (1) {
+            tfm_erpc_poll();
+            tfm_thrd_activate_schedule();
+        }
     }
+
+    tfm_erpc_exit();
+    tfm_openamp_exit();
+    TFM_ASSERT(false);
 #endif
 
     jump_to_ns_code();
