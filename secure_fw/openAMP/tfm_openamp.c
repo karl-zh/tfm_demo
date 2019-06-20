@@ -183,6 +183,46 @@ int rpmsg_openamp_read(struct rpmsg_endpoint *ept, char *data,
     return len;
 }
 
+/*!
+ * @brief erpcMatrixMultiply function implementation.
+ *
+ * This is the implementation of the erpcMatrixMultiply function called by the primary core.
+ *
+ * @param matrix1 First matrix
+ * @param matrix2 Second matrix
+ * @param result_matrix Result matrix
+ */
+void erpcMatrixMultiply(Matrix matrix1, Matrix matrix2, Matrix result_matrix)
+{
+    int32_t i, j, k;
+    const int32_t matrix_size = 5;
+
+    LOG_MSG("Calculating the matrix multiplication...\r\n");
+
+    /* Clear the result matrix */
+    for (i = 0; i < matrix_size; ++i)
+    {
+        for (j = 0; j < matrix_size; ++j)
+        {
+            result_matrix[i][j] = 0;
+        }
+    }
+
+    /* Multiply two matrices */
+    for (i = 0; i < matrix_size; ++i)
+    {
+        for (j = 0; j < matrix_size; ++j)
+        {
+            for (k = 0; k < matrix_size; ++k)
+            {
+                result_matrix[i][j] += matrix1[i][k] * matrix2[k][j];
+            }
+        }
+    }
+
+    LOG_MSG("Done!\r\n");
+}
+
 static struct rpmsg_virtio_shm_pool shpool;
 
 void tfm_openamp_init(void)
@@ -275,9 +315,19 @@ void tfm_openamp_init(void)
 
     erpc_server_init(transport ,message_buffer_factory);
 
+    /* adding the service to the server */
+    erpc_add_service_to_server(create_MatrixMultiplyService_service());
+    erpc_add_service_to_server(create_PsaFrameworkVersionService_service());
+    erpc_add_service_to_server(create_PsaVersionService_service());
+    erpc_add_service_to_server(create_PsaConnectService_service());
+    erpc_add_service_to_server(create_PsaCallService_service());
+    erpc_add_service_to_server(create_PsaCloseService_service());
+
+    LOG_MSG("MatrixMultiply service added\r\n");
     while (1) {
         /* process message */
         erpc_server_poll();
+        tfm_thrd_activate_schedule();
     }
 #else
 
