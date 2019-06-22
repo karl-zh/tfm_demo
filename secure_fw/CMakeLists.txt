@@ -114,6 +114,9 @@ endif()
 #Set include directories
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR} ABSOLUTE APPEND)
 
+get_filename_component(LIBMETAL_SOURCE_DIR "${TFM_ROOT_DIR}/../libmetal/libmetal/" ABSOLUTE)
+include(${TFM_ROOT_DIR}/BuildLibmetal.cmake)
+
 # For the non-swapping BL2 configuration two executables need to be built.
 # One can be executed from flash partition slot_0 and other from slot_1.
 # Only the linking phase is different. This function captures common settings
