@@ -41,7 +41,11 @@ else()
 endif()
 
 if(DUAL_CORE_IPC)
-	include(${SECURE_FW_DIR}/openAMP/CMakeLists.inc)
+	if(COMPILER STREQUAL "GNUARM")
+		include(${SECURE_FW_DIR}/openAMP/CMakeLists.inc)
+	else()
+		message(FATAL_ERROR "No support for compiler '${CMAKE_C_COMPILER_ID}' with DUAL_CORE_IPC yet.")
+	endif()
 endif()
 
 set(BUILD_CMSIS_CORE On)
@@ -168,8 +172,11 @@ function(set_up_secure_fw_build)
 	add_dependencies(${EXE_NAME} tfm_platform)
 	add_dependencies(${EXE_NAME} tfm_secure_tests)
 	add_dependencies(${EXE_NAME} tfm_attest)
-	add_dependencies(${EXE_NAME} libmetal)
-	add_dependencies(${EXE_NAME} libopen_amp)
+
+	if(DUAL_CORE_IPC)
+		add_dependencies(${EXE_NAME} libmetal)
+		add_dependencies(${EXE_NAME} libopen_amp)
+	endif()
 
 	#Set macro definitions for the project.
 	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=3 TFM_LVL=${TFM_LVL} ${DEBUG_AUTHENTICATION} APPEND)
