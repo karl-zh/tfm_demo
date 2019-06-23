@@ -114,8 +114,11 @@ endif()
 #Set include directories
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR} ABSOLUTE APPEND)
 
-get_filename_component(LIBMETAL_SOURCE_DIR "${TFM_ROOT_DIR}/../libmetal/libmetal/" ABSOLUTE)
-include(${TFM_ROOT_DIR}/BuildLibmetal.cmake)
+if(DUAL_CORE_IPC)
+	set (LIBMETAL_TARGET_NAME "libmetal")
+	get_filename_component(LIBMETAL_SOURCE_DIR "${TFM_ROOT_DIR}/../libmetal/libmetal/" ABSOLUTE)
+	include(${TFM_ROOT_DIR}/BuildLibmetal.cmake)
+endif()
 
 # For the non-swapping BL2 configuration two executables need to be built.
 # One can be executed from flash partition slot_0 and other from slot_1.
@@ -161,6 +164,7 @@ function(set_up_secure_fw_build)
 	add_dependencies(${EXE_NAME} tfm_platform)
 	add_dependencies(${EXE_NAME} tfm_secure_tests)
 	add_dependencies(${EXE_NAME} tfm_attest)
+	add_dependencies(${EXE_NAME} libmetal)
 
 	#Set macro definitions for the project.
 	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=3 TFM_LVL=${TFM_LVL} ${DEBUG_AUTHENTICATION} APPEND)
@@ -192,7 +196,7 @@ function(set_up_secure_fw_build)
 
 	if(DUAL_CORE_IPC)
 		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../open-amp/open-amp/build_openamp/lib/libopen_amp.a)
-		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../libmetal/libmetal/build_libmetal/lib/libmetal.a)
+		target_link_libraries(${EXE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/libmetal/lib/libmetal.a)
 		target_link_libraries(${EXE_NAME} ${PROJECT_SOURCE_DIR}/../../erpc/build/release/liberpc_server.a)
 	endif()
 

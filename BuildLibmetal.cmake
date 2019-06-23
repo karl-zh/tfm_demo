@@ -1,30 +1,41 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
+# Copyright (c) 2019 Linaro Limited
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
-#When included, this file will add a target to build the mbedtls libraries with
+#When included, this file will add a target to build the libmetal library with
 #the same compilation setting as used by the file including this one.
 cmake_minimum_required(VERSION 3.7)
 
-#Define where mbedtls intermediate output files are stored.
+#Define where libmetal intermediate output files are stored.
 set (LIBMETAL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/libmetal")
 
-set (LIBMETAL_TARGET_NAME "libmetal_cm33")
-#set (LIBMETAL_SOURCE_DIR "${CMAKE_CURRENT_DIR}/../libmetal/libmetal/")
+if(NOT DEFINED DUAL_CORE_IPC)
+	message(FATAL_ERROR "Please set DUAL_CORE_IPC to 'True' before including this file.")
+endif()
+
+if(NOT DUAL_CORE_IPC)
+	message(FATAL_ERROR "Please enable DUAL_CORE_IPC before including this file.")
+endif()
+
+if(NOT DEFINED LIBMETAL_SOURCE_DIR)
+	message(FATAL_ERROR "Please set LIBMETAL_SOURCE_DIR before including this file.")
+endif()
+
+if(NOT DEFINED LIBMETAL_TARGET_NAME)
+	message(FATAL_ERROR "Please set LIBMETAL_TARGET_NAME before including this file.")
+endif()
 
 set (LIBMETAL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/libmetal")
 set (LIBMETAL_INSTALL_DIR ${LIBMETAL_BINARY_DIR}/libmetal_install)
 
 if(NOT LIBMETAL_DEBUG)
-	set(MBEDTLS_BUILD_TYPE "Debug")
+	set(LIBMETAL_BUILD_TYPE "Release")
 endif()
 
-#Build mbedtls as external project.
-#This ensures mbedtls is built with exactly defined settings.
-#mbedtls will be used from is't install location
+#Build libmetal as external project.
 include(ExternalProject)
 
 externalproject_add(${LIBMETAL_TARGET_NAME}
@@ -37,18 +48,11 @@ externalproject_add(${LIBMETAL_TARGET_NAME}
 	CMAKE_CACHE_ARGS -DCMAKE_C_COMPILER:string=${CMAKE_C_COMPILER}
 	CMAKE_CACHE_ARGS -DCMAKE_C_COMPILER_ID:string=${CMAKE_C_COMPILER_ID}
 	CMAKE_CACHE_ARGS -DCMAKE_TOOLCHAIN_FILE:string=${LIBMETAL_SOURCE_DIR}/cmake/platforms/arm-cm33-generic.cmake
+	CMAKE_CACHE_ARGS -DCMAKE_C_FLAGS_DEBUG:string=${CMAKE_C_FLAGS_DEBUG}
+	CMAKE_CACHE_ARGS -DCMAKE_C_OUTPUT_EXTENSION:string=.o
+	CMAKE_CACHE_ARGS -DCMAKE_C_COMPILER_WORKS:bool=true
 
 	#Install location
 	CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:string=${LIBMETAL_INSTALL_DIR}
 
 	BINARY_DIR ${LIBMETAL_BINARY_DIR})
-
-#Add an install target to force installation after each mbedtls build. Without
-#this target installation happens only when a clean mbedtls build is executed.
-#add_custom_target(${LIBMETAL_TARGET_NAME}_install
-#	 COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/libmetal -- install
-#	 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libmetal
-#	 COMMENT "Installing libmetal to ${LIBMETAL_INSTALL_DIR}"
-#	 VERBATIM)
-#Make install rule depend on mbedtls library build
-#add_dependencies(${LIBMETAL_TARGET_NAME}_install ${LIBMETAL_TARGET_NAME})

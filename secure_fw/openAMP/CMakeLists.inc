@@ -18,7 +18,7 @@ unset(SS_OPENAMP_C_SRC)
 
 #Setting include directories
 embedded_include_directories(PATH ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE)
-embedded_include_directories(PATH ${TFM_ROOT_DIR}/../libmetal/libmetal/build_libmetal/lib/include ABSOLUTE)
+embedded_include_directories(PATH ${CMAKE_CURRENT_BINARY_DIR}/libmetal/lib/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/../open-amp/open-amp/lib/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/../erpc/service ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/../erpc/erpc_c/infra ABSOLUTE)

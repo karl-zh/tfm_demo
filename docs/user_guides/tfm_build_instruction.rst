@@ -50,6 +50,9 @@ line arguments:
          - ``Minsizerel``
    * - -DMBEDTLS_DEBUG=<ON|OFF>
      - To enables debug symbols for the Mbed TLS library.
+
+   * - -LIBMETAL_DEBUG=<ON|OFF>
+     - To enables debug symbols for the libmetal library.
    
 .. Note::
     Follow :doc:`secure boot <./tfm_secure_boot>` to build the binaries with or
