@@ -63,6 +63,9 @@ line arguments:
    * - -LIBMETAL_DEBUG=<ON|OFF>
      - To enables debug symbols for the libmetal library.
 
+   * - -LIBOPENAMP_DEBUG=<ON|OFF>
+     - To enables debug symbols for the libopen_amp library.
+
 .. Note::
     Follow :doc:`secure boot <./tfm_secure_boot>` to build the binaries with or
     without BL2 bootloader.
@@ -94,6 +97,7 @@ Getting the source-code
     git clone https://github.com/ARMmbed/mbed-crypto.git -b mbedcrypto-1.1.0
     git clone https://github.com/ARM-software/CMSIS_5.git -b 5.5.0
     git clone https://github.com/zephyrproject-rtos/libmetal.git
+    git clone https://github.com/zephyrproject-rtos/open-amp.git
 
 .. Note::
    `CMSIS_5` now uses `git-lfs` for storing large size binaries so the cloning
