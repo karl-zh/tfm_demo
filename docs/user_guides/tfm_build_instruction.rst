@@ -57,6 +57,9 @@ line arguments:
    * - -LIBOPENAMP_DEBUG=<ON|OFF>
      - To enables debug symbols for the libopen_amp library.
 
+   * - -LIBEPRC_DEBUG=<ON|OFF>
+     - To enables debug symbols for the liberpc_server and liberpc_client libraries.
+
 .. Note::
     Follow :doc:`secure boot <./tfm_secure_boot>` to build the binaries with or
     without BL2 bootloader.
