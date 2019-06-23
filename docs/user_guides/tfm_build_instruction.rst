@@ -66,6 +66,9 @@ line arguments:
    * - -LIBOPENAMP_DEBUG=<ON|OFF>
      - To enables debug symbols for the libopen_amp library.
 
+   * - -LIBEPRC_DEBUG=<ON|OFF>
+     - To enables debug symbols for the liberpc_server and liberpc_client libraries.
+
 .. Note::
     Follow :doc:`secure boot <./tfm_secure_boot>` to build the binaries with or
     without BL2 bootloader.
@@ -98,6 +101,7 @@ Getting the source-code
     git clone https://github.com/ARM-software/CMSIS_5.git -b 5.5.0
     git clone https://github.com/zephyrproject-rtos/libmetal.git
     git clone https://github.com/zephyrproject-rtos/open-amp.git
+    git clone https://github.com/karl-zh/erpc.git -b build_with_tfm_for_cm33
 
 .. Note::
    `CMSIS_5` now uses `git-lfs` for storing large size binaries so the cloning
@@ -106,6 +110,8 @@ Getting the source-code
 
 .. Note::
    The libmetal and open-amp are only for building the dual core TFM usage with
+   leveraging 3rd party open source project.
+   The ePRC repo is needed when TFM going to support remote call with
    leveraging 3rd party open source project.
 
 Build steps for the AN521 target platform:
