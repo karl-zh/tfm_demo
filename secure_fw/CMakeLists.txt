@@ -122,6 +122,10 @@ if(DUAL_CORE_IPC)
 	set (LIBMETAL_TARGET_NAME "libmetal")
 	get_filename_component(LIBMETAL_SOURCE_DIR "${TFM_ROOT_DIR}/../libmetal/libmetal/" ABSOLUTE)
 	include(${TFM_ROOT_DIR}/BuildLibmetal.cmake)
+
+	set (LIBOPENAMP_TARGET_NAME "libopen_amp")
+	get_filename_component(LIBOPENAMP_SOURCE_DIR "${TFM_ROOT_DIR}/../open-amp/open-amp/" ABSOLUTE)
+	include(${TFM_ROOT_DIR}/BuildOpenAMP.cmake)
 endif()
 
 # For the non-swapping BL2 configuration two executables need to be built.
@@ -175,6 +179,7 @@ function(set_up_secure_fw_build)
 
 	if(DUAL_CORE_IPC)
 		add_dependencies(${EXE_NAME} libmetal)
+		add_dependencies(${EXE_NAME} libopen_amp)
 	endif()
 
 	#Set macro definitions for the project.
@@ -212,6 +217,7 @@ function(set_up_secure_fw_build)
 	endif()
 
 	if(DUAL_CORE_IPC)
+		target_link_libraries(${EXE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/libopen_amp/lib/libopen_amp.a)
 		target_link_libraries(${EXE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/libmetal/lib/libmetal.a)
 	endif()
 
