@@ -118,6 +118,12 @@ endif()
 #Set include directories
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR} ABSOLUTE APPEND)
 
+if(DUAL_CORE_IPC)
+	set (LIBMETAL_TARGET_NAME "libmetal")
+	get_filename_component(LIBMETAL_SOURCE_DIR "${TFM_ROOT_DIR}/../libmetal/libmetal/" ABSOLUTE)
+	include(${TFM_ROOT_DIR}/BuildLibmetal.cmake)
+endif()
+
 # For the non-swapping BL2 configuration two executables need to be built.
 # One can be executed from flash partition slot_0 and other from slot_1.
 # Only the linking phase is different. This function captures common settings
@@ -167,6 +173,10 @@ function(set_up_secure_fw_build)
 		add_dependencies(${EXE_NAME} tfm_platform)
 	endif()
 
+	if(DUAL_CORE_IPC)
+		add_dependencies(${EXE_NAME} libmetal)
+	endif()
+
 	#Set macro definitions for the project.
 	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=3 TFM_LVL=${TFM_LVL} ${DEBUG_AUTHENTICATION} APPEND)
 
@@ -199,6 +209,10 @@ function(set_up_secure_fw_build)
 
 	if (TFM_PARTITION_PLATFORM)
 		target_link_libraries(${EXE_NAME} tfm_platform)
+	endif()
+
+	if(DUAL_CORE_IPC)
+		target_link_libraries(${EXE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/libmetal/lib/libmetal.a)
 	endif()
 
 	embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_LVL=${TFM_LVL}")
