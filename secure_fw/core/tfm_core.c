@@ -19,6 +19,7 @@
 #include "tfm_utils.h"
 #include "spm_db.h"
 #include "log/tfm_log.h"
+#include "region.h"
 #ifdef TFM_PSA_API
 #include "psa/client.h"
 #include "psa/service.h"
