@@ -36,6 +36,8 @@ Getting the source-code
    process has changed from previous releases. Please refer to the `CMSIS_5`
    documentation for more details.
 
+   For IARARM builds, see the notes below on CMSIS_5 versions.
+
 Build steps for the AN521 target platform:
 ==========================================
 .. code-block:: bash
@@ -262,6 +264,7 @@ line arguments:
 
          - ``ARMCLANG``
          - ``GNUARM``
+         - ``IARARM``
    * - -DCMAKE_BUILD_TYPE=<build type>
      - Configures debugging support.
        The possible values are:
@@ -285,6 +288,32 @@ line arguments:
 .. Note::
     Follow :doc:`secure boot <./tfm_secure_boot>` to build the binaries with or
     without BL2 bootloader.
+
+
+Notes for building with IARARM
+------------------------------
+
+    Currently the MUSCA_B1, MUSCA_S1 and SSE-200_AWS targets are not supported with IARARM,
+    due to lack of testing.
+
+    bash needs to be installed and used by cmake for the build steps.
+
+    CMSIS_5 needs to be of version 5.7 or later, which is currently only available as development
+    builds. Omit the "-b 5.5.0" argument when cloning.
+
+    For all configurations and build options some of the QCBOR tests fail due to the tests not handling
+    double float NaN:s accoring to the Arm Runtime ABI. This should be sorted out in the future.
+
+    Some minor changes to the mbed-crypto pack is required to allow building TF-M with the
+    IAR tools.
+
+    For mbed-crypto (CMakeLists.txt):
+
+ if(CMAKE_COMPILER_IS_IAR)
+-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts --warnings_are_errors -Ohz")
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts")
+ endif(CMAKE_COMPILER_IS_IAR)
+
 
 Configurations
 ==============
