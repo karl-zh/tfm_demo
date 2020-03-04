@@ -46,7 +46,8 @@ void tfm_nspm_thread_entry(void)
     while (1) {
     }
 
-    /* Should not run here */
+
+    /* NOTREACHED */
     TFM_ASSERT(false);
 }
 

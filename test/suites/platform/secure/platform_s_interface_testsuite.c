@@ -11,7 +11,7 @@
 
 static struct test_t platform_interface_tests[] = {
     {&tfm_platform_test_common_001, "TFM_PLATFORM_TEST_1001",
-     "Minimal platform service test", {0} },
+     "Minimal platform service test", {TEST_PASSED} },
 };
 
 void

@@ -249,8 +249,8 @@ static int32_t ARM_Flash_EraseSector(uint32_t addr)
     /* The erase function checks whether the address is aligned with
      * the sector or subsector and checks the Flash memory boundaries.
      */
-    err = mt25ql_erase(ARM_FLASH0_DEV.dev,
-                       addr, ARM_FLASH0_DEV.data->sector_size);
+    err = mt25ql_erase(ARM_FLASH0_DEV.dev, addr,
+                       (enum mt25ql_erase_t) ARM_FLASH0_DEV.data->sector_size);
 
     ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
 

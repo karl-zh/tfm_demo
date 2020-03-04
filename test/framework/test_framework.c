@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 static void test_failed(const struct test_result_t *ret)
 {
     printf_set_color(RED);

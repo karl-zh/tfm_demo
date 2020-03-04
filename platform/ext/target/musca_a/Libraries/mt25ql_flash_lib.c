@@ -514,7 +514,7 @@ enum mt25ql_error_t mt25ql_restore_reset_state(struct mt25ql_dev_t* dev)
 
     qspi_ip6514e_enable(dev->controller);
 
-    dev->config_state = (struct mt25ql_config_state_t){ 0 };
+    dev->config_state = (struct mt25ql_config_state_t){ MT25QL_FUNC_STATE_NOT_INITED };
     dev->config_state.func_state = MT25QL_FUNC_STATE_NOT_INITED;
 
     return MT25QL_ERR_NONE;

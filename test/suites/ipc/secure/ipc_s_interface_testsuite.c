@@ -13,7 +13,7 @@
 static void tfm_ipc_test_1001(struct test_result_t *ret);
 
 static struct test_t ipc_veneers_tests[] = {
-    {&tfm_ipc_test_1001, "TFM_IPC_TEST_1001", "Secure functional", {0} },
+    {&tfm_ipc_test_1001, "TFM_IPC_TEST_1001", "Secure functional", {TEST_PASSED} },
 };
 
 void register_testsuite_s_ipc_interface(struct test_suite_t *p_test_suite)

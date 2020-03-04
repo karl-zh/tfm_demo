@@ -43,6 +43,7 @@ psa_status_t tfm_sst_test_init(void)
             break;
         }
     }
-#endif
+#else
     return PSA_SUCCESS;
+#endif
 }

@@ -198,11 +198,13 @@ int main(void)
 #if defined(TEST_FRAMEWORK_NS) || defined(PSA_API_TEST_NS)
     thread_id = osThreadNew(thread_func, NULL, &thread_attr);
 #else
-    UNUSED_VARIABLE(thread_id);
     UNUSED_VARIABLE(thread_func);
 #endif
+    UNUSED_VARIABLE(thread_id);
 
     status = osKernelStart();
+
+    UNUSED_VARIABLE(status);
 
     /* Reached only in case of error */
     for (;;) {

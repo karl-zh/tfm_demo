@@ -15,7 +15,7 @@
 struct tfm_core_irq_signal_data_t {
     int32_t partition_id;
     psa_signal_t signal_value;
-    int32_t irq_line;
+    IRQn_Type irq_line;
     uint32_t irq_priority;
 };
 

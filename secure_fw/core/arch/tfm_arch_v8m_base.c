@@ -17,6 +17,10 @@
 #error "Unsupported ARM Architecture."
 #endif
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 #ifdef TFM_PSA_API
 /*
  * Stack status at PendSV entry:

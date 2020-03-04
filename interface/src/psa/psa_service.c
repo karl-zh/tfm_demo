@@ -11,6 +11,10 @@
 #include "psa/client.h"
 #include "psa/service.h"
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 __attribute__((naked))
 psa_signal_t psa_wait(psa_signal_t signal_mask, uint32_t timeout)
 

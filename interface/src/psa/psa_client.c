@@ -10,6 +10,10 @@
 #include "psa/client.h"
 #include "tfm_api.h"
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 __attribute__((naked))
 uint32_t psa_framework_version(void)
 {

@@ -303,7 +303,6 @@ static psa_status_t test_outvec_write(void)
     uint8_t *in_buf_0;
     uint8_t *in_buf_1;
     uint8_t *out_buf_0;
-    uint8_t *out_buf_1;
 
     in_buf_0 = data_buf_ptr;
     for (i = 0; i < 5; ++i, ++data_buf_ptr)
@@ -328,7 +327,6 @@ static psa_status_t test_outvec_write(void)
     out_vec[0].base = out_buf_0;
     out_vec[0].len = data_buf_ptr - out_buf_0;
 
-    out_buf_1 = data_buf_ptr;
     data_buf_ptr += in_vec[1].len;
     out_vec[1].base = out_buf_0;
     out_vec[1].len = data_buf_ptr - out_buf_0;
@@ -721,7 +719,7 @@ psa_status_t core_test_init(void)
             ; /* do nothing */
         }
     }
-#endif /* defined(TFM_PSA_API) */
-
+#else
     return CORE_TEST_ERRNO_SUCCESS;
+#endif /* defined(TFM_PSA_API) */
 }

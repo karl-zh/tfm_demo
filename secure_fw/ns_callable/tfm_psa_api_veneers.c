@@ -25,6 +25,10 @@
  *   interference between two sides.
  */
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 __tfm_psa_secure_gateway_attributes__
 uint32_t tfm_psa_framework_version_veneer(void)
 {

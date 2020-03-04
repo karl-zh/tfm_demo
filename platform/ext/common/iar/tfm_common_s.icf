@@ -378,7 +378,7 @@ define block TFM_SP_SECURE_TEST_PARTITION_LINKER_DATA with alignment = 32 {
     };
 
 #if defined (TFM_PSA_API)
-define block TFM_SP_SECURE_TEST_PARTITION_LINKER_STACK with alignment = 128, size = 0x0C80 { };
+define block TFM_SP_SECURE_TEST_PARTITION_LINKER_STACK with alignment = 128, size = 0x0D00 { };
 #endif
 #endif /* TFM_PARTITION_TEST_SECURE_SERVICES */
 

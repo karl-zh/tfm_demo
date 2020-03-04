@@ -20,7 +20,7 @@ static void tfm_core_test_2001(struct test_result_t *ret);
 
 static struct test_t core_tests[] = {
     {&tfm_core_test_2001, "TFM_CORE_TEST_2001",
-     "Interactive tests", {0} },
+     "Interactive tests", {TEST_PASSED} },
 };
 
 void register_testsuite_ns_core_interactive(struct test_suite_t *p_test_suite)

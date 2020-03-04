@@ -20,6 +20,10 @@
 #error "Unsupported ARM Architecture."
 #endif
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 struct tfm_fault_context_s {
     uint32_t R0;
     uint32_t R1;

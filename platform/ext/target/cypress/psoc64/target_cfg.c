@@ -1180,7 +1180,6 @@ const PPU_Resources *ppu_init_table[] = {
 void ppu_init_cfg(void)
 {
     cy_en_prot_status_t ret;
-    (void)ret;
 
     size_t n = sizeof(ppu_init_table)/sizeof(ppu_init_table[0]);
 
@@ -1189,6 +1188,8 @@ void ppu_init_cfg(void)
         ret = PPU_Configure(ppu_init_table[i]);
         assert(ret == CY_PROT_SUCCESS);
     }
+
+    (void)ret;
 
     __DSB();
     __ISB();

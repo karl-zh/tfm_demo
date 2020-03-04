@@ -59,6 +59,9 @@ static uint32_t get_client_id(void)
 
     return 0;
 }
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
 
 __attribute__ ((naked))
 static uint32_t tfm_nspm_svc_register_client(uint32_t client_id)

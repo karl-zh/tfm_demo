@@ -22,6 +22,10 @@ void jump_to_ns_code(void)
     ns_entry();
 }
 
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 #ifndef TFM_PSA_API
 __attribute__((naked))
 int32_t tfm_core_memory_permission_check(const void *ptr,

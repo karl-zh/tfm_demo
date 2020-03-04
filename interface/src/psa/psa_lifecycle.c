@@ -8,6 +8,10 @@
 #include "psa/lifecycle.h"
 #include "core/tfm_core_svc.h"
 
+#if defined (__ICCARM__)
+#pragma diag_suppress = Pe940
+#endif
+
 __attribute__((naked))
 uint32_t psa_rot_lifecycle_state(void)
 {

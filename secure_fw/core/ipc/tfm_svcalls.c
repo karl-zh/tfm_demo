@@ -37,7 +37,7 @@ extern int32_t platform_svc_handlers(tfm_svc_number_t svc_num,
 #endif
 
 void tfm_irq_handler(uint32_t partition_id, psa_signal_t signal,
-                     int32_t irq_line);
+                     IRQn_Type irq_line);
 
 #include "tfm_secure_irq_handlers_ipc.inc"
 
@@ -783,7 +783,7 @@ static void tfm_svcall_psa_notify(uint32_t *args)
  * \retval "Does not return"    Partition ID is invalid
  */
 void tfm_irq_handler(uint32_t partition_id, psa_signal_t signal,
-                     int32_t irq_line)
+                     IRQn_Type irq_line)
 {
     tfm_spm_hal_disable_irq(irq_line);
     notify_with_signal(partition_id, signal);
@@ -843,9 +843,9 @@ static void tfm_svcall_psa_panic(void)
  * \retval IPC_ERROR_GENERIC    There was an error finding the IRQ line for the
  *                              signal. irq_line is unchanged.
  */
-static int32_t get_irq_line_for_signal(int32_t partition_id,
+static IRQn_Type get_irq_line_for_signal(int32_t partition_id,
                                        psa_signal_t signal,
-                                       int32_t *irq_line)
+                                       IRQn_Type *irq_line)
 {
     size_t i;
 
@@ -853,10 +853,10 @@ static int32_t get_irq_line_for_signal(int32_t partition_id,
         if (tfm_core_irq_signals[i].partition_id == partition_id &&
             tfm_core_irq_signals[i].signal_value == signal) {
             *irq_line = tfm_core_irq_signals[i].irq_line;
-            return IPC_SUCCESS;
+            return (IRQn_Type) IPC_SUCCESS;
         }
     }
-    return IPC_ERROR_GENERIC;
+    return (IRQn_Type) IPC_ERROR_GENERIC;
 }
 
 /*
@@ -881,7 +881,7 @@ static int32_t get_irq_line_for_signal(int32_t partition_id,
 static void tfm_svcall_psa_eoi(uint32_t *args)
 {
     psa_signal_t irq_signal;
-    int32_t irq_line = 0;
+    IRQn_Type irq_line = (IRQn_Type) 0;
     int32_t ret;
     struct spm_partition_desc_t *partition = NULL;
 
@@ -920,7 +920,7 @@ void tfm_svcall_enable_irq(uint32_t *args)
 {
     struct tfm_state_context_t *svc_ctx = (struct tfm_state_context_t *)args;
     psa_signal_t irq_signal = svc_ctx->r0;
-    int32_t irq_line = 0;
+    IRQn_Type irq_line = (IRQn_Type) 0;
     int32_t ret;
     struct spm_partition_desc_t *partition = NULL;
 
@@ -948,7 +948,7 @@ void tfm_svcall_disable_irq(uint32_t *args)
 {
     struct tfm_state_context_t *svc_ctx = (struct tfm_state_context_t *)args;
     psa_signal_t irq_signal = svc_ctx->r0;
-    int32_t irq_line = 0;
+    IRQn_Type irq_line = (IRQn_Type) 0;
     int32_t ret;
     struct spm_partition_desc_t *partition = NULL;
 

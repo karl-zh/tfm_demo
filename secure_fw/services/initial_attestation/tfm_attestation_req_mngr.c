@@ -197,6 +197,7 @@ psa_status_t attest_partition_init(void)
             tfm_abort();
         }
     }
-#endif
+#else
     return err;
+#endif
 }

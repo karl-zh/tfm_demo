@@ -42,8 +42,9 @@ int32_t tfm_secure_client_service_init(void)
             break;
         }
     }
-#endif
+#else
     return 0;
+#endif
 }
 
 int32_t tfm_secure_client_service_sfn_run_tests(void)
